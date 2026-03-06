@@ -91,10 +91,10 @@ debug-k8s                    Pod / Event デバッグ
 
 ## アプリケーション開発
 
-アプリケーション (Go / Node.js / React) の開発手順・コマンド・フロントエンド開発については [microservice-app の README](https://github.com/thirdlf03/microservice-app#readme) を参照。
+アプリケーション (Go / Node.js / React) の開発手順・コマンド・フロントエンド開発については [microservice-app の README](https://github.com/hackz-megalo-cup/microservices-app#readme) を参照。
 
 このリポジトリはインフラ基盤の構築・運用のみを扱う。アプリのデプロイは `microservice-app` 側で `tilt up` または `docker compose up` で行う。
 
 ## 関連リポジトリ
 
-- [microservice-app](https://github.com/thirdlf03/microservice-app) -- アプリケーションコード (Go / Node.js / React)
+- [microservice-app](https://github.com/hackz-megalo-cup/microservice-app) -- アプリケーションコード (Go / Node.js / React)
