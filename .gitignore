@@ -4,6 +4,7 @@
 .pre-commit-config.yaml
 result
 result-*
+otel-collector-image.tar
 .treefmt-cache/
 manifests-result
 
