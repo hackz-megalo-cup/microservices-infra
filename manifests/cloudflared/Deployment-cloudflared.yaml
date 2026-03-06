@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudflared
+  namespace: cloudflare
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: tunnel
+      app.kubernetes.io/name: cloudflared
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: tunnel
+        app.kubernetes.io/name: cloudflared
+    spec:
+      containers:
+        - args:
+            - tunnel
+            - --config
+            - /etc/cloudflared/config/config.yaml
+            - --loglevel
+            - debug
+            - run
+          image: cloudflare/cloudflared:latest
+          name: cloudflared
+          ports:
+            - containerPort: 2000
+              name: metrics
+          resources:
+            limits:
+              cpu: 200m
+              memory: 256Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi
+          volumeMounts:
+            - mountPath: /etc/cloudflared/config
+              name: config
+            - mountPath: /etc/cloudflared/creds
+              name: creds
+      volumes:
+        - configMap:
+            name: cloudflared-config
+          name: config
+        - name: creds
+          secret:
+            secretName: tunnel-credentials

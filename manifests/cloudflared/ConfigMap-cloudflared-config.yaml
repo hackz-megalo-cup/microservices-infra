@@ -1,0 +1,18 @@
+apiVersion: v1
+data:
+  config.yaml: |
+    tunnel: microservice-infra
+    credentials-file: /etc/cloudflared/creds/credentials.json
+    metrics: 0.0.0.0:2000
+    ingress:
+      - hostname: grafana.thirdlf03.com
+        service: http://kube-prometheus-stack-grafana.observability:80
+      - hostname: hubble.thirdlf03.com
+        service: http://hubble-ui.kube-system:80
+      - hostname: argocd.thirdlf03.com
+        service: http://argocd-server.argocd:80
+      - service: http_status:404
+kind: ConfigMap
+metadata:
+  name: cloudflared-config
+  namespace: cloudflare

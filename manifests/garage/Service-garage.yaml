@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: garage
+  namespace: storage
+spec:
+  ports:
+    - name: admin
+      port: 3903
+      protocol: TCP
+      targetPort: 3903
+    - name: rpc
+      port: 3901
+      protocol: TCP
+      targetPort: 3901
+    - name: s3
+      port: 3900
+      protocol: TCP
+      targetPort: 3900
+  selector:
+    app.kubernetes.io/component: object-storage
+    app.kubernetes.io/name: garage

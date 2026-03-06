@@ -1,0 +1,23 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app.kubernetes.io/component: metrics
+    app.kubernetes.io/instance: postgresql
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/version: 18.3.0
+    helm.sh/chart: postgresql-18.5.2
+  name: postgresql
+  namespace: database
+spec:
+  endpoints:
+    - port: http-metrics
+  namespaceSelector:
+    matchNames:
+      - database
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: metrics
+      app.kubernetes.io/instance: postgresql
+      app.kubernetes.io/name: postgresql

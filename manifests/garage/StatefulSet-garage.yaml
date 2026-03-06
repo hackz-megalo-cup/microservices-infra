@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: garage
+  namespace: storage
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: object-storage
+      app.kubernetes.io/name: garage
+  serviceName: garage
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: object-storage
+        app.kubernetes.io/name: garage
+    spec:
+      containers:
+        - env:
+            - name: GARAGE_CONFIG_FILE
+              value: /etc/garage/garage.toml
+          image: dxflrs/garage:v1.1.0
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3903
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          name: garage
+          ports:
+            - containerPort: 3903
+              name: admin
+            - containerPort: 3901
+              name: rpc
+            - containerPort: 3900
+              name: s3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3903
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 50m
+              memory: 128Mi
+          volumeMounts:
+            - mountPath: /etc/garage
+              name: config
+            - mountPath: /var/lib/garage/data
+              name: data
+            - mountPath: /var/lib/garage/meta
+              name: meta
+      volumes:
+        - configMap:
+            name: garage-config
+          name: config
+  volumeClaimTemplates:
+    - metadata:
+        name: meta
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 512Mi
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 4Gi

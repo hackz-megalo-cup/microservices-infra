@@ -1,0 +1,30 @@
+# Nix / devenv
+.devenv/
+.direnv/
+.pre-commit-config.yaml
+result
+result-*
+.treefmt-cache/
+manifests-result
+
+# Secrets
+secrets/*.yaml
+secrets/*.plain
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# IDE & editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+**/.DS_Store
+Thumbs.db
+

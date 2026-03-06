@@ -1,0 +1,58 @@
+---
+# Istio なし環境用: Traefik forwardAuth で JWT 検証
+# full-bootstrap (Istio あり) では不要
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: auth-middleware
+  namespace: microservices
+spec:
+  forwardAuth:
+    address: "http://auth-service.microservices.svc.cluster.local:8090/verify"
+    authResponseHeaders:
+      - "X-User-Id"
+---
+# greeter-route に auth-middleware を追加
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: greeter-route
+  namespace: microservices
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: "PathPrefix(`/greeter.v1.GreeterService`)"
+      kind: Rule
+      priority: 100
+      middlewares:
+        - name: cors-middleware
+        - name: auth-middleware
+        - name: rate-limit-middleware
+        - name: retry-middleware
+      services:
+        - name: greeter-service
+          port: 80
+          scheme: h2c
+---
+# gateway-route に auth-middleware を追加
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: gateway-route
+  namespace: microservices
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: "PathPrefix(`/gateway.v1.GatewayService`)"
+      kind: Rule
+      priority: 100
+      middlewares:
+        - name: cors-middleware
+        - name: auth-middleware
+        - name: rate-limit-middleware
+      services:
+        - name: gateway
+          port: 8082
+          scheme: h2c

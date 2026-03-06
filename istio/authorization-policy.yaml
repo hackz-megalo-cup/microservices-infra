@@ -1,0 +1,52 @@
+# =============================================================================
+# Waypoint L7 policies (targetRef → waypoint)
+# =============================================================================
+
+# RequestAuthentication: validate JWT from auth-service
+# Invalid tokens are rejected; missing tokens are allowed through
+# (AuthorizationPolicy below handles the "must have JWT" logic)
+---
+apiVersion: security.istio.io/v1
+kind: RequestAuthentication
+metadata:
+  name: jwt-auth
+  namespace: microservices
+spec:
+  targetRefs:
+  - kind: Gateway
+    group: gateway.networking.k8s.io
+    name: waypoint
+  jwtRules:
+  - issuer: "auth-service"
+    jwksUri: "http://auth-service.microservices.svc.cluster.local:8090/.well-known/jwks.json"
+    forwardOriginalToken: true
+
+# AuthorizationPolicy (ALLOW): require valid JWT OR public path
+# Pattern from Istio docs: single ALLOW with two rules (OR semantics)
+#   Rule 1: requestPrincipals=* (valid JWT present) → allow any path
+#   Rule 2: public paths → allow without JWT
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: require-jwt-or-public
+  namespace: microservices
+spec:
+  targetRefs:
+  - kind: Gateway
+    group: gateway.networking.k8s.io
+    name: waypoint
+  action: ALLOW
+  rules:
+  # Rule 1: valid JWT → allow all paths
+  - from:
+    - source:
+        requestPrincipals: ["*"]
+  # Rule 2: public paths → allow without JWT
+  - to:
+    - operation:
+        paths: ["/auth/*", "/healthz", "/.well-known/*"]
+  # Rule 3: mesh-internal service-to-service → allow without JWT
+  - from:
+    - source:
+        principals: ["cluster.local/ns/microservices/sa/*"]

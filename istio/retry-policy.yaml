@@ -1,0 +1,18 @@
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: greeter-retry
+  namespace: microservices
+spec:
+  hosts:
+    - greeter-service
+  http:
+    - route:
+        - destination:
+            host: greeter-service
+            port:
+              number: 80
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+        retryOn: connect-failure,refused-stream,unavailable,cancelled,retriable-status-codes

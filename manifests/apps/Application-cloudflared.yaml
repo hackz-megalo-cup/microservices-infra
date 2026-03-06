@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cloudflared
+  namespace: argocd
+spec:
+  destination:
+    namespace: cloudflare
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: ./manifests/cloudflared
+    repoURL: https://github.com/thirdlf03/microservice-infra
+    targetRevision: main
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

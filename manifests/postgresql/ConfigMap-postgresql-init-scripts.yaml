@@ -1,0 +1,23 @@
+apiVersion: v1
+data:
+  create-databases.sql: |
+    CREATE DATABASE auth_db;
+    CREATE DATABASE lang_db;
+    CREATE DATABASE greeter_db;
+    CREATE DATABASE caller_db;
+    CREATE DATABASE gateway_db;
+    GRANT ALL PRIVILEGES ON DATABASE auth_db TO devuser;
+    GRANT ALL PRIVILEGES ON DATABASE lang_db TO devuser;
+    GRANT ALL PRIVILEGES ON DATABASE greeter_db TO devuser;
+    GRANT ALL PRIVILEGES ON DATABASE caller_db TO devuser;
+    GRANT ALL PRIVILEGES ON DATABASE gateway_db TO devuser;
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/instance: postgresql
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/version: 18.3.0
+    helm.sh/chart: postgresql-18.5.2
+  name: postgresql-init-scripts
+  namespace: database

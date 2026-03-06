@@ -1,0 +1,47 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: microservice-infra
+networking:
+  disableDefaultCNI: true
+nodes:
+  - role: control-plane
+    kubeadmConfigPatches:
+      - |
+        kind: InitConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "ingress-ready=true"
+    extraPortMappings:
+      # ArgoCD HTTP
+      - containerPort: 30080
+        hostPort: 30080
+        protocol: TCP
+      # ArgoCD HTTPS
+      - containerPort: 30443
+        hostPort: 30443
+        protocol: TCP
+      # Grafana
+      - containerPort: 30300
+        hostPort: 30300
+        protocol: TCP
+      # Traefik HTTP
+      - containerPort: 30081
+        hostPort: 30081
+        protocol: TCP
+      # Traefik HTTPS
+      - containerPort: 30444
+        hostPort: 30444
+        protocol: TCP
+      # Hubble UI
+      - containerPort: 31235
+        hostPort: 31235
+        protocol: TCP
+      # Prometheus UI
+      - containerPort: 30090
+        hostPort: 30090
+        protocol: TCP
+      # Alertmanager UI
+      - containerPort: 30093
+        hostPort: 30093
+        protocol: TCP
+  - role: worker

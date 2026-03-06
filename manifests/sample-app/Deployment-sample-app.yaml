@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sample-app
+  namespace: sample-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sample-app
+      app.kubernetes.io/version: 0.1.0
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: sample-app
+        app.kubernetes.io/version: 0.1.0
+    spec:
+      containers:
+        - env:
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otel-collector.observability:4317
+            - name: OTEL_SERVICE_NAME
+              value: sample-app
+            - name: PORT
+              value: "8080"
+          image: sample-app:latest
+          imagePullPolicy: Never
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          name: sample-app
+          ports:
+            - containerPort: 8080
+              name: http
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          resources:
+            limits:
+              cpu: 200m
+              memory: 128Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi

@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: services
+  namespace: argocd
+spec:
+  generators:
+    - git:
+        repoURL: https://github.com/thirdlf03/microservice-app.git
+        directories:
+          - path: services/*/k8s/generated
+          - path: frontend/k8s/generated
+  template:
+    metadata:
+      name: '{{path[0]}}-{{path[1]}}'
+      annotations:
+        argocd.argoproj.io/manifest-generate-paths: '{{path}}'
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/thirdlf03/microservice-app.git
+        targetRevision: main
+        path: '{{path}}'
+      destination:
+        server: https://kubernetes.default.svc
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true

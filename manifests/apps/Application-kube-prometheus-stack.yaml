@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kube-prometheus-stack
+  namespace: argocd
+spec:
+  destination:
+    namespace: observability
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: ./manifests/kube-prometheus-stack
+    repoURL: https://github.com/thirdlf03/microservice-infra
+    targetRevision: main
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true

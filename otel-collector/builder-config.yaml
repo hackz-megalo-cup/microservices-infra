@@ -1,0 +1,14 @@
+dist:
+  name: otel-collector
+  output_path: ./output
+
+receivers:
+  - gomod: go.opentelemetry.io/collector/receiver/otlpreceiver v0.147.0
+
+processors:
+  - gomod: go.opentelemetry.io/collector/processor/batchprocessor v0.147.0
+
+exporters:
+  - gomod: go.opentelemetry.io/collector/exporter/otlpexporter v0.147.0
+  - gomod: go.opentelemetry.io/collector/exporter/otlphttpexporter v0.147.0
+  - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.147.0

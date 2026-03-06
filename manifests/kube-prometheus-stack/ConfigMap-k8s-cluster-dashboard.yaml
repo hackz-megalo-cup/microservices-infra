@@ -1,0 +1,460 @@
+apiVersion: v1
+data:
+  k8s-cluster.json: |
+    {
+       "description": "Cluster-level monitoring: nodes, pods, resource usage",
+       "graphTooltip": 1,
+       "panels": [
+          {
+             "datasource": {
+                "type": "datasource",
+                "uid": "-- Mixed --"
+             },
+             "gridPos": {
+                "h": 4,
+                "w": 4,
+                "x": 0,
+                "y": 0
+             },
+             "id": 1,
+             "pluginVersion": "v11.4.0",
+             "targets": [
+                {
+                   "datasource": {
+                      "type": "prometheus",
+                      "uid": "Prometheus"
+                   },
+                   "expr": "count(kube_node_info)",
+                   "legendFormat": "Nodes"
+                }
+             ],
+             "title": "Nodes",
+             "type": "stat"
+          },
+          {
+             "datasource": {
+                "type": "datasource",
+                "uid": "-- Mixed --"
+             },
+             "gridPos": {
+                "h": 4,
+                "w": 4,
+                "x": 4,
+                "y": 0
+             },
+             "id": 2,
+             "pluginVersion": "v11.4.0",
+             "targets": [
+                {
+                   "datasource": {
+                      "type": "prometheus",
+                      "uid": "Prometheus"
+                   },
+                   "expr": "sum(kube_pod_status_phase{phase=\"Running\"})",
+                   "legendFormat": "Running"
+                }
+             ],
+             "title": "Running Pods",
+             "type": "stat"
+          },
+          {
+             "datasource": {
+                "type": "datasource",
+                "uid": "-- Mixed --"
+             },
+             "gridPos": {
+                "h": 4,
+                "w": 4,
+                "x": 8,
+                "y": 0
+             },
+             "id": 3,
+             "pluginVersion": "v11.4.0",
+             "targets": [
+                {
+                   "datasource": {
+                      "type": "prometheus",
+                      "uid": "Prometheus"
+                   },
+                   "expr": "sum(kube_pod_status_phase{phase=\"Pending\"}) or vector(0)",
+                   "legendFormat": "Pending"
+                }
+             ],
+             "title": "Pending Pods",
+             "type": "stat"
+          },
+          {
+             "datasource": {
+                "type": "datasource",
+                "uid": "-- Mixed --"
+             },
+             "gridPos": {
+                "h": 4,
+                "w": 4,
+                "x": 12,
+                "y": 0
+             },
+             "id": 4,
+             "pluginVersion": "v11.4.0",
+             "targets": [
+                {
+                   "datasource": {
+                      "type": "prometheus",
+                      "uid": "Prometheus"
+                   },
+                   "expr": "sum(kube_pod_status_phase{phase=\"Failed\"}) or vector(0)",
+                   "legendFormat": "Failed"
+                }
+             ],
+             "title": "Failed Pods",
+             "type": "stat"
+          },
+          {
+             "datasource": {
+                "type": "datasource",
+                "uid": "-- Mixed --"
+             },
+             "fieldConfig": {
+                "defaults": {
+                   "unit": "percentunit"
+                }
+             },
+             "gridPos": {
+                "h": 4,
+                "w": 4,
+                "x": 16,
+                "y": 0
+             },
+             "id": 5,
+             "pluginVersion": "v11.4.0",
+             "targets": [
+                {
+                   "datasource": {
+                      "type": "prometheus",
+                      "uid": "Prometheus"
+                   },
+                   "expr": "1 - avg(rate(node_cpu_seconds_total{mode=\"idle\"}[$__rate_interval]))",
+                   "legendFormat": "CPU Usage"
+                }
+             ],
+             "title": "Cluster CPU",
+             "type": "stat"
+          },
+          {
+             "datasource": {
+                "type": "datasource",
+                "uid": "-- Mixed --"
+             },
+             "fieldConfig": {
+                "defaults": {
+                   "unit": "percentunit"
+                }
+             },
+             "gridPos": {
+                "h": 4,
+                "w": 4,
+                "x": 20,
+                "y": 0
+             },
+             "id": 6,
+             "pluginVersion": "v11.4.0",
+             "targets": [
+                {
+                   "datasource": {
+                      "type": "prometheus",
+                      "uid": "Prometheus"
+                   },
+                   "expr": "1 - sum(node_memory_MemAvailable_bytes) / sum(node_memory_MemTotal_bytes)",
+                   "legendFormat": "Memory Usage"
+                }
+             ],
+             "title": "Cluster Memory",
+             "type": "stat"
+          },
+          {
+             "datasource": {
+                "type": "datasource",
+                "uid": "-- Mixed --"
+             },
+             "fieldConfig": {
+                "defaults": {
+                   "max": 1,
+                   "unit": "percentunit"
+                }
+             },
+             "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 4
+             },
+             "id": 7,
+             "pluginVersion": "v11.4.0",
+             "targets": [
+                {
+                   "datasource": {
+                      "type": "prometheus",
+                      "uid": "Prometheus"
+                   },
+                   "expr": "1 - avg(rate(node_cpu_seconds_total{mode=\"idle\"}[$__rate_interval])) by (instance)",
+                   "legendFormat": "{{ instance }}"
+                }
+             ],
+             "title": "Node CPU Usage",
+             "type": "timeseries"
+          },
+          {
+             "datasource": {
+                "type": "datasource",
+                "uid": "-- Mixed --"
+             },
+             "fieldConfig": {
+                "defaults": {
+                   "max": 1,
+                   "unit": "percentunit"
+                }
+             },
+             "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 4
+             },
+             "id": 8,
+             "pluginVersion": "v11.4.0",
+             "targets": [
+                {
+                   "datasource": {
+                      "type": "prometheus",
+                      "uid": "Prometheus"
+                   },
+                   "expr": "1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)",
+                   "legendFormat": "{{ instance }}"
+                }
+             ],
+             "title": "Node Memory Usage",
+             "type": "timeseries"
+          },
+          {
+             "datasource": {
+                "type": "datasource",
+                "uid": "-- Mixed --"
+             },
+             "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 12
+             },
+             "id": 9,
+             "pluginVersion": "v11.4.0",
+             "targets": [
+                {
+                   "datasource": {
+                      "type": "prometheus",
+                      "uid": "Prometheus"
+                   },
+                   "expr": "topk(10, sum(increase(kube_pod_container_status_restarts_total[$__rate_interval])) by (namespace, pod))",
+                   "legendFormat": "{{ namespace }}/{{ pod }}"
+                }
+             ],
+             "title": "Pod Restarts (top 10)",
+             "type": "timeseries"
+          },
+          {
+             "datasource": {
+                "type": "datasource",
+                "uid": "-- Mixed --"
+             },
+             "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 12
+             },
+             "id": 10,
+             "pluginVersion": "v11.4.0",
+             "targets": [
+                {
+                   "datasource": {
+                      "type": "prometheus",
+                      "uid": "Prometheus"
+                   },
+                   "expr": "sum(kube_pod_status_phase{phase=\"Running\"}) by (namespace)",
+                   "legendFormat": "{{ namespace }}"
+                }
+             ],
+             "title": "Running Pods by Namespace",
+             "type": "timeseries"
+          },
+          {
+             "datasource": {
+                "type": "datasource",
+                "uid": "-- Mixed --"
+             },
+             "fieldConfig": {
+                "defaults": {
+                   "unit": "short"
+                }
+             },
+             "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 20
+             },
+             "id": 11,
+             "pluginVersion": "v11.4.0",
+             "targets": [
+                {
+                   "datasource": {
+                      "type": "prometheus",
+                      "uid": "Prometheus"
+                   },
+                   "expr": "sum(kube_pod_container_resource_requests{resource=\"cpu\"}) by (namespace)",
+                   "legendFormat": "{{ namespace }} requests"
+                },
+                {
+                   "datasource": {
+                      "type": "prometheus",
+                      "uid": "Prometheus"
+                   },
+                   "expr": "sum(rate(container_cpu_usage_seconds_total{container!=\"\", container!=\"POD\"}[$__rate_interval])) by (namespace)",
+                   "legendFormat": "{{ namespace }} actual"
+                }
+             ],
+             "title": "CPU: Requests vs Actual (by namespace)",
+             "type": "timeseries"
+          },
+          {
+             "datasource": {
+                "type": "datasource",
+                "uid": "-- Mixed --"
+             },
+             "fieldConfig": {
+                "defaults": {
+                   "unit": "bytes"
+                }
+             },
+             "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 20
+             },
+             "id": 12,
+             "pluginVersion": "v11.4.0",
+             "targets": [
+                {
+                   "datasource": {
+                      "type": "prometheus",
+                      "uid": "Prometheus"
+                   },
+                   "expr": "sum(kube_pod_container_resource_requests{resource=\"memory\"}) by (namespace)",
+                   "legendFormat": "{{ namespace }} requests"
+                },
+                {
+                   "datasource": {
+                      "type": "prometheus",
+                      "uid": "Prometheus"
+                   },
+                   "expr": "sum(container_memory_working_set_bytes{container!=\"\", container!=\"POD\"}) by (namespace)",
+                   "legendFormat": "{{ namespace }} actual"
+                }
+             ],
+             "title": "Memory: Requests vs Actual (by namespace)",
+             "type": "timeseries"
+          },
+          {
+             "datasource": {
+                "type": "datasource",
+                "uid": "-- Mixed --"
+             },
+             "fieldConfig": {
+                "defaults": {
+                   "max": 1,
+                   "unit": "percentunit"
+                }
+             },
+             "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 28
+             },
+             "id": 13,
+             "pluginVersion": "v11.4.0",
+             "targets": [
+                {
+                   "datasource": {
+                      "type": "prometheus",
+                      "uid": "Prometheus"
+                   },
+                   "expr": "1 - (node_filesystem_avail_bytes{mountpoint=\"/\", fstype!=\"tmpfs\"} / node_filesystem_size_bytes{mountpoint=\"/\", fstype!=\"tmpfs\"})",
+                   "legendFormat": "{{ instance }}"
+                }
+             ],
+             "title": "Node Disk Usage",
+             "type": "timeseries"
+          },
+          {
+             "datasource": {
+                "type": "datasource",
+                "uid": "-- Mixed --"
+             },
+             "fieldConfig": {
+                "defaults": {
+                   "unit": "Bps"
+                }
+             },
+             "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 28
+             },
+             "id": 14,
+             "pluginVersion": "v11.4.0",
+             "targets": [
+                {
+                   "datasource": {
+                      "type": "prometheus",
+                      "uid": "Prometheus"
+                   },
+                   "expr": "sum(rate(node_network_receive_bytes_total{device!~\"lo|veth.*|docker.*|flannel.*|cali.*|cbr.*\"}[$__rate_interval])) by (instance)",
+                   "legendFormat": "{{ instance }} rx"
+                },
+                {
+                   "datasource": {
+                      "type": "prometheus",
+                      "uid": "Prometheus"
+                   },
+                   "expr": "sum(rate(node_network_transmit_bytes_total{device!~\"lo|veth.*|docker.*|flannel.*|cali.*|cbr.*\"}[$__rate_interval])) by (instance)",
+                   "legendFormat": "{{ instance }} tx"
+                }
+             ],
+             "title": "Node Network I/O",
+             "type": "timeseries"
+          }
+       ],
+       "refresh": "30s",
+       "schemaVersion": 39,
+       "tags": [
+          "kubernetes",
+          "cluster",
+          "infrastructure"
+       ],
+       "time": {
+          "from": "now-6h",
+          "to": "now"
+       },
+       "timezone": "utc",
+       "title": "Kubernetes Cluster Overview",
+       "uid": "k8s-cluster-overview"
+    }
+kind: ConfigMap
+metadata:
+  labels:
+    grafana_dashboard: "1"
+  name: k8s-cluster-dashboard
+  namespace: observability
