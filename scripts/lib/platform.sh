@@ -5,7 +5,7 @@
 
 # Idempotency guard
 if [[ "${_PLATFORM_LOADED:-}" == "true" ]]; then
-  return 0 2>/dev/null || exit 0
+  return 0
 fi
 
 # ---------------------------------------------------------------------------
@@ -16,7 +16,7 @@ case "$PLATFORM_OS" in
   darwin|linux) ;;
   *)
     echo "platform.sh: unsupported OS: $PLATFORM_OS" >&2
-    return 1 2>/dev/null || exit 1
+    return 1
     ;;
 esac
 
@@ -31,7 +31,7 @@ case "$_RAW_ARCH" in
   amd64)   PLATFORM_ARCH="x86_64"  ;;
   *)
     echo "platform.sh: unsupported architecture: $_RAW_ARCH" >&2
-    return 1 2>/dev/null || exit 1
+    return 1
     ;;
 esac
 unset _RAW_ARCH

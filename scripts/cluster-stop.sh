@@ -4,13 +4,13 @@ set -euo pipefail
 
 CLUSTER_NAME="microservice-infra"
 
-containers=$(docker ps -q --filter "label=io.x-k8s.kind.cluster=${CLUSTER_NAME}" 2>/dev/null)
+readarray -t containers < <(docker ps -q --filter "label=io.x-k8s.kind.cluster=${CLUSTER_NAME}" 2>/dev/null)
 
-if [[ -z "$containers" ]]; then
+if [[ ${#containers[@]} -eq 0 ]]; then
   echo "No running containers for cluster '${CLUSTER_NAME}'."
   exit 0
 fi
 
 echo "Stopping kind cluster '${CLUSTER_NAME}'..."
-docker stop $containers
+docker stop "${containers[@]}"
 echo "Cluster stopped. Use 'cluster-start' to resume."

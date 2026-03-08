@@ -5,18 +5,15 @@
 
 # Idempotency guard
 if [[ "${_PARALLEL_LOADED:-}" == "true" ]]; then
-  return 0 2>/dev/null || exit 0
+  return 0
 fi
 
 # ---------------------------------------------------------------------------
 # Derive REPO_ROOT if not already set
 # ---------------------------------------------------------------------------
 if [[ -z "${REPO_ROOT:-}" ]]; then
-  # Support both bash and zsh
   if [[ -n "${BASH_SOURCE[0]:-}" ]]; then
     REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-  elif [[ -n "${(%):-%x}" ]]; then
-    REPO_ROOT="$(cd "$(dirname "${(%):-%x}")/../.." && pwd)"
   else
     REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
   fi

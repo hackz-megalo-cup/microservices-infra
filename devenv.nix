@@ -57,6 +57,12 @@
 
   git-hooks.hooks = {
     treefmt.enable = true;
+    shellcheck = {
+      enable = true;
+      entry = lib.mkForce "${pkgs.shellcheck}/bin/shellcheck -x -P SCRIPTDIR";
+      files = "\\.sh$";
+      types = [ "shell" ];
+    };
   };
 
   env.R2_BUCKET_URL = "https://pub-9ae9f5d16bca420987ef4d417c621c61.r2.dev/otel-collector";

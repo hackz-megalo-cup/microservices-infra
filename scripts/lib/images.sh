@@ -5,7 +5,7 @@
 
 # Idempotency guard
 if [[ "${_IMAGES_LOADED:-}" == "true" ]]; then
-  return 0 2>/dev/null || exit 0
+  return 0
 fi
 
 # ---------------------------------------------------------------------------
@@ -30,6 +30,7 @@ PRELOAD_IMAGES=(
 # ---------------------------------------------------------------------------
 # Full images — base + ArgoCD stack, used by full-bootstrap.sh
 # ---------------------------------------------------------------------------
+export PRELOAD_IMAGES_FULL
 PRELOAD_IMAGES_FULL=(
   "${PRELOAD_IMAGES[@]}"
   "quay.io/argoproj/argocd:v3.3.2"
@@ -39,6 +40,7 @@ PRELOAD_IMAGES_FULL=(
 # ---------------------------------------------------------------------------
 # Dev images — no Cilium, OTel is fetched from R2 separately
 # ---------------------------------------------------------------------------
+export PRELOAD_IMAGES_DEV
 PRELOAD_IMAGES_DEV=(
   "registry-1.docker.io/bitnami/postgresql:latest"
   "docker.io/grafana/grafana:12.4.0"

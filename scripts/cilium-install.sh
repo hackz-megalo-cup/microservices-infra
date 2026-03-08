@@ -2,6 +2,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/images.sh
 source "${SCRIPT_DIR}/lib/images.sh"
 
 echo "=== Installing Cilium (with Hubble) via OCI chart ==="

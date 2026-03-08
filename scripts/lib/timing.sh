@@ -5,18 +5,15 @@
 
 # Idempotency guard
 if [[ "${_TIMING_LOADED:-}" == "true" ]]; then
-  return 0 2>/dev/null || exit 0
+  return 0
 fi
 
 # ---------------------------------------------------------------------------
 # Derive REPO_ROOT if not already set
 # ---------------------------------------------------------------------------
 if [[ -z "${REPO_ROOT:-}" ]]; then
-  # Support both bash and zsh
   if [[ -n "${BASH_SOURCE[0]:-}" ]]; then
     REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-  elif [[ -n "${(%):-%x}" ]]; then
-    REPO_ROOT="$(cd "$(dirname "${(%):-%x}")/../.." && pwd)"
   else
     REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
   fi
@@ -125,10 +122,10 @@ timed_step() {
 
   # Store step data (use 1-based index for bash/zsh compatibility)
   _TIMING_STEP_COUNT=$(( _TIMING_STEP_COUNT + 1 ))
-  _TIMING_STEP_NAMES[${_TIMING_STEP_COUNT}]="$step_name"
-  _TIMING_STEP_DURATIONS[${_TIMING_STEP_COUNT}]="$duration"
-  _TIMING_STEP_EXIT_CODES[${_TIMING_STEP_COUNT}]="$exit_code"
-  _TIMING_STEP_RESOURCES[${_TIMING_STEP_COUNT}]="${resource_data:-}"
+  _TIMING_STEP_NAMES[_TIMING_STEP_COUNT]="$step_name"
+  _TIMING_STEP_DURATIONS[_TIMING_STEP_COUNT]="$duration"
+  _TIMING_STEP_EXIT_CODES[_TIMING_STEP_COUNT]="$exit_code"
+  _TIMING_STEP_RESOURCES[_TIMING_STEP_COUNT]="${resource_data:-}"
 
   if [[ "$exit_code" -eq 0 ]]; then
     echo "<<< [${step_name}] OK — ${duration}s"
