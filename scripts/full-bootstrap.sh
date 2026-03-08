@@ -3,6 +3,7 @@
 # 4-phase parallel execution for maximum speed
 # Usage: full-bootstrap [--clean]
 set -euo pipefail
+trap 'jobs -p | xargs -r kill 2>/dev/null; wait 2>/dev/null' EXIT
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
@@ -101,7 +102,9 @@ _step_image_preload() {
 _step_network_setup() {
   # 1. Load cilium + otel images into kind
   echo "Loading Cilium image into kind cluster..."
-  kind load docker-image "quay.io/cilium/cilium:v${CILIUM_VERSION}" --name "${CLUSTER_NAME}" 2>/dev/null || true
+  if ! kind load docker-image "quay.io/cilium/cilium:v${CILIUM_VERSION}" --name "${CLUSTER_NAME}" 2>/dev/null; then
+    echo "WARNING: Failed to load Cilium image into kind" >&2
+  fi
   bash "${SCRIPT_DIR}/load-otel-collector-image.sh" load
 
   # 2. Start loading remaining images in background (overlaps with cilium/istio install)
@@ -119,7 +122,13 @@ _step_network_setup() {
 
   # 5. Apply Gateway API CRDs
   echo "Applying Gateway API CRDs..."
-  kubectl apply --server-side -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.5.0/standard-install.yaml
+  for attempt in 1 2 3; do
+    if kubectl apply --server-side -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.5.0/standard-install.yaml; then
+      break
+    fi
+    echo "Gateway API CRDs apply failed (attempt $attempt/3), retrying in 5s..."
+    [[ $attempt -lt 3 ]] && sleep 5
+  done
 
   # 6. Wait for background image load to finish before Phase 3
   echo "Waiting for image load to complete..."
@@ -140,7 +149,7 @@ _step_garage_deploy() {
   kubectl create namespace storage --dry-run=client -o yaml | kubectl apply -f -
   kubectl apply -f "${REPO_ROOT}/manifests-result/garage/" --server-side --force-conflicts
   echo "Waiting for Garage to be ready..."
-  until kubectl get pod -n storage -l app.kubernetes.io/name=garage 2>/dev/null | grep -q .; do
+  until kubectl get pod --no-headers -n storage -l app.kubernetes.io/name=garage 2>/dev/null | grep -q .; do
     sleep 2
   done
   kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=garage -n storage --timeout=120s
@@ -156,8 +165,16 @@ _step_observability() {
   done
 
   # Wait for CRDs to be established before applying CRs (Prometheus, Alertmanager, etc.)
-  kubectl wait --for=condition=established crd prometheuses.monitoring.coreos.com --timeout=60s
-  kubectl wait --for=condition=established crd alertmanagers.monitoring.coreos.com --timeout=60s
+  if kubectl get crd prometheuses.monitoring.coreos.com &>/dev/null; then
+    kubectl wait --for=condition=established crd prometheuses.monitoring.coreos.com --timeout=60s
+  else
+    echo "WARNING: CRD prometheuses.monitoring.coreos.com not found, skipping wait" >&2
+  fi
+  if kubectl get crd alertmanagers.monitoring.coreos.com &>/dev/null; then
+    kubectl wait --for=condition=established crd alertmanagers.monitoring.coreos.com --timeout=60s
+  else
+    echo "WARNING: CRD alertmanagers.monitoring.coreos.com not found, skipping wait" >&2
+  fi
 
   kubectl apply -f "${REPO_ROOT}/manifests-result/kube-prometheus-stack/" --server-side --force-conflicts
   kubectl apply -f "${REPO_ROOT}/manifests-result/loki/" --server-side --force-conflicts
@@ -182,7 +199,7 @@ _step_postgresql_apply() {
 _wait_for_pod() {
   local label="$1" namespace="$2" timeout="${3:-300}"
   local max_poll=120 waited=0
-  until kubectl get pod -n "$namespace" -l "$label" 2>/dev/null | grep -q .; do
+  until kubectl get pod --no-headers -n "$namespace" -l "$label" 2>/dev/null | grep -q .; do
     sleep 2
     waited=$((waited + 2))
     if [[ $waited -ge $max_poll ]]; then
