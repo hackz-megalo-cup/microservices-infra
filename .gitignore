@@ -1,5 +1,6 @@
 # Nix / devenv
 .devenv/
+.devenv-root
 .direnv/
 .pre-commit-config.yaml
 result
