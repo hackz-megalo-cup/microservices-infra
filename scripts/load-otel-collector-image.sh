@@ -49,7 +49,7 @@ _otel_load() {
 R2_BUCKET_URL="${R2_BUCKET_URL:-}"
 
 _compute_otel_hash() {
-  shasum -a 256 "${REPO_ROOT}/flake.nix" "${REPO_ROOT}/flake.lock" \
+  (cd "$REPO_ROOT" && shasum -a 256 flake.nix flake.lock) \
     | shasum -a 256 | cut -d' ' -f1
 }
 
