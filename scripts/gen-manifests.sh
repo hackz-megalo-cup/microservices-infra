@@ -3,17 +3,18 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
-SYSTEM="$(nix eval --raw --impure --expr 'builtins.currentSystem')"
+
+# shellcheck source=lib/platform.sh
+source "${SCRIPT_DIR}/lib/platform.sh"
 
 echo "==> Building nixidy manifests..."
-nix build "${REPO_ROOT}#legacyPackages.${SYSTEM}.nixidyEnvs.local.environmentPackage" -o "${REPO_ROOT}/manifests-result"
+nix build "${REPO_ROOT}#legacyPackages.${PLATFORM_NIX_SYSTEM}.nixidyEnvs.local.environmentPackage" -o "${REPO_ROOT}/manifests-result"
 
 echo "==> Copying to manifests/..."
 rm -rf "${REPO_ROOT}/manifests"
 cp -rL "${REPO_ROOT}/manifests-result" "${REPO_ROOT}/manifests"
 chmod -R u+w "${REPO_ROOT}/manifests"
 
-# ArgoCD は argocd-bootstrap で手動デプロイするため、Application から除外
 rm -f "${REPO_ROOT}/manifests/apps/Application-argocd.yaml"
 
 echo "==> Done. manifests/ updated."

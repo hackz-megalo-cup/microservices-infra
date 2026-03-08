@@ -57,7 +57,15 @@
 
   git-hooks.hooks = {
     treefmt.enable = true;
+    shellcheck = {
+      enable = true;
+      entry = lib.mkForce "${pkgs.shellcheck}/bin/shellcheck -x -P SCRIPTDIR";
+      files = "\\.sh$";
+      types = [ "shell" ];
+    };
   };
+
+  env.R2_BUCKET_URL = "https://pub-9ae9f5d16bca420987ef4d417c621c61.r2.dev/otel-collector";
 
   scripts = {
     cluster-up.exec = ''
@@ -65,6 +73,12 @@
     '';
     cluster-down.exec = ''
       bash "$DEVENV_ROOT/scripts/cluster-down.sh"
+    '';
+    cluster-stop.exec = ''
+      bash "$DEVENV_ROOT/scripts/cluster-stop.sh"
+    '';
+    cluster-start.exec = ''
+      bash "$DEVENV_ROOT/scripts/cluster-start.sh"
     '';
     argocd-bootstrap.exec = ''
       bash "$DEVENV_ROOT/scripts/argocd-bootstrap.sh"
@@ -102,10 +116,16 @@
         || echo "✗ nix eval FAILED"
     '';
     bootstrap.exec = ''
-      bash "$DEVENV_ROOT/scripts/bootstrap.sh"
+      bash "$DEVENV_ROOT/scripts/bootstrap.sh" "$@"
+    '';
+    bootstrap-full.exec = ''
+      bash "$DEVENV_ROOT/scripts/bootstrap-full.sh"
     '';
     cloudflared-setup.exec = ''
       bash "$DEVENV_ROOT/scripts/cloudflared-setup.sh"
+    '';
+    benchmark.exec = ''
+      bash "$DEVENV_ROOT/scripts/benchmark.sh" "$@"
     '';
     debug-k8s.exec = ''
       echo "=== Pod status ==="
@@ -121,10 +141,13 @@
     echo "Available commands:"
     echo "  cluster-up       : Create kind cluster"
     echo "  cluster-down     : Destroy kind cluster"
+    echo "  cluster-stop     : Stop cluster (preserve state)"
+    echo "  cluster-start    : Start stopped cluster"
     echo "  argocd-bootstrap : Bootstrap ArgoCD on cluster"
     echo "  sops-init        : Generate age key for sops"
-    echo "  bootstrap        : Lite environment setup (no Istio/ArgoCD, 1 worker)"
-    echo "  full-bootstrap   : Full environment setup"
+    echo "  bootstrap        : Dev-fast setup (kindnetd, warm cluster, single node)"
+    echo "  bootstrap-full   : Full setup with Cilium (parity mode)"
+    echo "  full-bootstrap   : Full environment setup (legacy)"
     echo "  gen-manifests    : Regenerate nixidy manifests into manifests/"
     echo "  load-otel-collector-image : Build + load custom OTel Collector into kind"
     echo "  watch-manifests  : Watch nixidy modules and apply changes"
@@ -133,6 +156,7 @@
     echo "  cilium-install    : Install Cilium + Hubble into kind cluster"
     echo "  istio-install     : Install Istio ambient mode"
     echo "  cloudflared-setup : Setup Cloudflare Tunnel + DNS"
+    echo "  benchmark        : Run bootstrap benchmark (N iterations)"
     echo "  debug-k8s        : Kubernetes pod/event debug"
     echo ""
     echo "Cilium / Hubble:"

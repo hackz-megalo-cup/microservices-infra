@@ -1,0 +1,47 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: microservice-infra
+nodes:
+  - role: control-plane
+    kubeadmConfigPatches:
+      - |
+        kind: InitConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "ingress-ready=true"
+      - |
+        kind: ClusterConfiguration
+        apiServer:
+          extraArgs:
+            event-ttl: "15m"
+        etcd:
+          local:
+            extraArgs:
+              auto-compaction-mode: "periodic"
+              auto-compaction-retention: "5m"
+      - |
+        kind: KubeletConfiguration
+        imageGCHighThresholdPercent: 100
+        evictionHard:
+          nodefs.available: "0%"
+          nodefs.inodesFree: "0%"
+          imagefs.available: "0%"
+    extraPortMappings:
+      - containerPort: 30300
+        hostPort: 30300
+        protocol: TCP
+      - containerPort: 30081
+        hostPort: 30081
+        protocol: TCP
+      - containerPort: 30444
+        hostPort: 30444
+        protocol: TCP
+      - containerPort: 31235
+        hostPort: 31235
+        protocol: TCP
+      - containerPort: 30090
+        hostPort: 30090
+        protocol: TCP
+      - containerPort: 30093
+        hostPort: 30093
+        protocol: TCP

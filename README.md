@@ -26,43 +26,61 @@
 
 ## セットアップ
 
-### Lite セットアップ (推奨)
+### Dev-fast セットアップ (推奨)
 
-Istio・ArgoCD を省略した軽量構成。worker ノード 1 台。アプリのデプロイは `tilt up` で行う。
+kindnetd (Cilium なし)、シングルノード構成。warm cluster 対応で 2 回目以降は設定が変わっていなければ即完了 (hash gate)。
 
 ```bash
 bootstrap
 ```
 
-#### ポート一覧
+- `bootstrap --clean` — キャッシュを無視してフルリビルド
+- `bootstrap --full` — Cilium モード (`bootstrap-full`) に委譲
+- Cold: ~120s / Warm: 即時
 
-| ポート | サービス |
-|---|---|
-| 30081 | Traefik HTTP |
-| 30090 | Prometheus |
-| 30093 | Alertmanager |
-| 30300 | Grafana (admin/admin) |
-| 31235 | Hubble UI |
+> [!NOTE]
+> 2回目以降の実行では、クラスタとマニフェストのハッシュを比較して自動的に warm reapply（差分のみ再適用）を行います。フルリビルドが必要な場合は `bootstrap --clean` を使用してください。
+
+### Cilium セットアップ
+
+Cilium + Hubble、worker 1 台。本番に近い CNI 構成でテストしたい場合に使用。
+
+```bash
+bootstrap-full
+```
+
+- Cold: ~200s
 
 ### Full セットアップ
 
-Istio (ambient mode) + ArgoCD + Gateway API を含むフル構成。worker ノード 2 台。
+Cilium + Istio (ambient mode) + ArgoCD + worker 2 台のフルスタック構成。
 
 ```bash
 full-bootstrap
 ```
 
-#### 追加ポート
+> [!NOTE]
+> 2回目以降の実行では、クラスタとマニフェストのハッシュを比較して自動的に warm reapply（差分のみ再適用）を行います。フルリビルドが必要な場合は `full-bootstrap --clean` を使用してください。
 
-| ポート | サービス |
-|---|---|
-| 30080 | ArgoCD HTTP |
-| 30443 | ArgoCD HTTPS |
+### ポート一覧
+
+| ポート | サービス | 備考 |
+|---|---|---|
+| 30081 | Traefik HTTP | |
+| 30090 | Prometheus | |
+| 30093 | Alertmanager | |
+| 30300 | Grafana (admin/admin) | |
+| 31235 | Hubble UI | Cilium / Full モードのみ |
+| 30080 | ArgoCD HTTP | Full モードのみ |
+| 30443 | ArgoCD HTTPS | Full モードのみ |
 
 ### その他のコマンド
 
 ```
 cluster-up / cluster-down    Kind クラスタの作成・削除
+cluster-stop / cluster-start クラスタの停止・再開 (状態保持)
+bootstrap-full               Cilium モードセットアップ
+benchmark N                  ブートストラップベンチマーク (N回実行)
 gen-manifests                nixidy マニフェスト再生成
 cilium-install               Cilium + Hubble インストール
 istio-install                Istio ambient mode インストール
@@ -80,13 +98,14 @@ debug-k8s                    Pod / Event デバッグ
 | `nixidy/` | nixidy モジュール (マニフェスト生成の Nix 定義) |
 | `manifests/` | nixidy 生成済みマニフェスト (環境別) |
 | `manifests-result/` | レンダリング済みマニフェスト (kubectl apply 対象) |
-| `k8s/` | Kind クラスタ設定 (kind-config.yaml, kind-config-lite.yaml) |
+| `k8s/` | Kind クラスタ設定 (kind-config.yaml, kind-config-lite.yaml, kind-config-dev.yaml) |
 | `scripts/` | ブートストラップ・セットアップスクリプト群 |
 | `argocd/` | ArgoCD ApplicationSet 定義 |
 | `dashboards/` | Grafana ダッシュボード (grafonnet) |
 | `otel-collector/` | カスタム OTel Collector ビルド定義 |
 | `istio/` | Istio 関連設定 |
 | `patches/` | Traefik auth パッチ等 |
+| `docs/` | ブートストラップモード・最適化のドキュメント |
 | `secrets/` | SOPS 暗号化シークレット |
 
 ## アプリケーション開発

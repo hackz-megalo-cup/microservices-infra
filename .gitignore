@@ -29,3 +29,14 @@ secrets/*.plain
 **/.DS_Store
 Thumbs.db
 
+# Benchmark logs
+logs/
+
+docs/plans/
+
+# Bootstrap state (warm cluster hash)
+.bootstrap-state/
+.bootstrap-state-full/
+
+# Local cache (OTel image tar from R2)
+.cache/
