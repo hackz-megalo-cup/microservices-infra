@@ -36,6 +36,7 @@ docs/plans/
 
 # Bootstrap state (warm cluster hash)
 .bootstrap-state/
+.bootstrap-state-full/
 
 # Local cache (OTel image tar from R2)
 .cache/
