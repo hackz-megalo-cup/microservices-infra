@@ -107,6 +107,9 @@
     cloudflared-setup.exec = ''
       bash "$DEVENV_ROOT/scripts/cloudflared-setup.sh"
     '';
+    benchmark.exec = ''
+      bash "$DEVENV_ROOT/scripts/benchmark.sh" "$@"
+    '';
     debug-k8s.exec = ''
       echo "=== Pod status ==="
       kubectl get pods -A
@@ -133,6 +136,7 @@
     echo "  cilium-install    : Install Cilium + Hubble into kind cluster"
     echo "  istio-install     : Install Istio ambient mode"
     echo "  cloudflared-setup : Setup Cloudflare Tunnel + DNS"
+    echo "  benchmark        : Run bootstrap benchmark (N iterations)"
     echo "  debug-k8s        : Kubernetes pod/event debug"
     echo ""
     echo "Cilium / Hubble:"

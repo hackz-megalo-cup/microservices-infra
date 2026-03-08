@@ -19,7 +19,3 @@ kubectl config use-context "kind-${CLUSTER_NAME}" >/dev/null 2>&1 || true
 
 echo "Cluster created. Context set to kind-${CLUSTER_NAME}."
 kubectl cluster-info --context "kind-${CLUSTER_NAME}"
-
-echo ""
-echo "=== Installing Cilium CNI ==="
-bash "${SCRIPT_DIR}/cilium-install.sh"

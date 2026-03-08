@@ -89,10 +89,10 @@ platform_cpu_model() {
 platform_cpu_cores() {
   case "$PLATFORM_OS" in
     darwin)
-      sysctl -n hw.ncpu 2>/dev/null || echo "unknown"
+      sysctl -n hw.ncpu 2>/dev/null || echo "0"
       ;;
     linux)
-      nproc 2>/dev/null || echo "unknown"
+      nproc 2>/dev/null || echo "0"
       ;;
   esac
 }
@@ -102,12 +102,12 @@ platform_memory_gb() {
   case "$PLATFORM_OS" in
     darwin)
       local bytes
-      bytes="$(sysctl -n hw.memsize 2>/dev/null)" || { echo "unknown"; return; }
+      bytes="$(sysctl -n hw.memsize 2>/dev/null)" || { echo "0"; return; }
       echo $(( bytes / 1073741824 ))
       ;;
     linux)
       local kb
-      kb="$(grep -m1 "^MemTotal:" /proc/meminfo 2>/dev/null | awk '{print $2}')" || { echo "unknown"; return; }
+      kb="$(grep -m1 "^MemTotal:" /proc/meminfo 2>/dev/null | awk '{print $2}')" || { echo "0"; return; }
       echo $(( kb / 1048576 ))
       ;;
   esac

@@ -4,8 +4,10 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 
+source "${SCRIPT_DIR}/lib/platform.sh"
+
 echo "Building nixidy manifests..."
-nix build "${REPO_ROOT}#legacyPackages.$(nix eval --raw --impure --expr 'builtins.currentSystem').nixidyEnvs.local.environmentPackage" -o "${REPO_ROOT}/manifests-result"
+nix build "${REPO_ROOT}#legacyPackages.${PLATFORM_NIX_SYSTEM}.nixidyEnvs.local.environmentPackage" -o "${REPO_ROOT}/manifests-result"
 
 echo "Creating argocd namespace..."
 kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -

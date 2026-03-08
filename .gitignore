@@ -29,3 +29,7 @@ secrets/*.plain
 **/.DS_Store
 Thumbs.db
 
+# Benchmark logs
+logs/
+
+docs/plans/

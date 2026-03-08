@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "=== Installing Cilium (with Hubble) ==="
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/lib/images.sh"
 
-# Helm repo
-helm repo add cilium https://helm.cilium.io/
-helm repo update
+echo "=== Installing Cilium (with Hubble) via OCI chart ==="
 
 # Cilium インストール（Istio 共存設定）
 # - cni.exclusive=false: Istio の CNI プラグインとチェーンできるようにする
 # - socketLB.hostNamespaceOnly=true: Istio のトラフィックリダイレクションに干渉しない
 # - kubeProxyReplacement=false: Istio との安全な共存のため
-helm upgrade --install cilium cilium/cilium \
+helm upgrade --install cilium oci://quay.io/cilium/charts/cilium \
+  --version "${CILIUM_VERSION}" \
   --namespace kube-system \
   --set image.pullPolicy=IfNotPresent \
   --set ipam.mode=kubernetes \
@@ -24,10 +24,8 @@ helm upgrade --install cilium cilium/cilium \
   --set hubble.ui.service.type=NodePort \
   --set hubble.ui.service.nodePort=31235
 
-# Cilium 起動待ち
-echo "=== Waiting for Cilium to be ready ==="
+# Cilium 起動待ち (hubble-relay/hubble-ui are not critical for CNI readiness)
+echo "=== Waiting for Cilium DaemonSet to be ready ==="
 kubectl rollout status -n kube-system ds/cilium --timeout=300s
-kubectl rollout status -n kube-system deploy/hubble-relay --timeout=300s
-kubectl rollout status -n kube-system deploy/hubble-ui --timeout=300s
 
-echo "=== Cilium + Hubble installation complete ==="
+echo "=== Cilium installation complete ==="
