@@ -38,6 +38,9 @@ bootstrap
 - `bootstrap --full` — Cilium モード (`bootstrap-full`) に委譲
 - Cold: ~120s / Warm: 即時
 
+> [!NOTE]
+> 2回目以降の実行では、クラスタとマニフェストのハッシュを比較して自動的に warm reapply（差分のみ再適用）を行います。フルリビルドが必要な場合は `bootstrap --clean` を使用してください。
+
 ### Cilium セットアップ
 
 Cilium + Hubble、worker 1 台。本番に近い CNI 構成でテストしたい場合に使用。
@@ -55,6 +58,9 @@ Cilium + Istio (ambient mode) + ArgoCD + worker 2 台のフルスタック構成
 ```bash
 full-bootstrap
 ```
+
+> [!NOTE]
+> 2回目以降の実行では、クラスタとマニフェストのハッシュを比較して自動的に warm reapply（差分のみ再適用）を行います。フルリビルドが必要な場合は `full-bootstrap --clean` を使用してください。
 
 ### ポート一覧
 

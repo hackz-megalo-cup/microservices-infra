@@ -8,9 +8,9 @@
 | ノード | control-plane × 1 | control-plane + worker × 1 | control-plane + worker × 2 |
 | Istio | なし | なし | ambient mode |
 | ArgoCD | なし | なし | あり |
-| Warm cluster | あり | なし | なし |
+| Warm cluster | あり | なし | あり |
 | Cold start | ~120s | ~200s | ~250s |
-| Warm start | 即時 (hash一致) / 10-15s (manifest変更) | — | — |
+| Warm start | 即時 (hash一致) / 10-15s (manifest変更) | — | 即時 (hash一致) / manifest再適用 |
 | 用途 | 日常開発 | CNI テスト | フルスタック検証 |
 
 ## Dev-fast モード詳細
@@ -37,6 +37,18 @@ Phase 4 (並列): pod ready 待ち (postgresql, grafana, prometheus)
 
 - `bootstrap --clean` — 既存クラスタ削除 + cold start
 - `bootstrap --full` — `bootstrap-full.sh` に委譲 (Cilium モード)
+
+## Full モード詳細
+
+### Warm Cluster (Hash Gate)
+
+- `.bootstrap-state-full/cluster` — kind config + images.sh の SHA-256 hash
+- `.bootstrap-state-full/manifest` — manifests-result/ 全体の SHA-256 hash
+- Dev-fast と同じ 3 パターン判定 (health check のみ / warm reapply / cold start)
+
+### フラグ
+
+- `full-bootstrap --clean` — 既存クラスタ削除 + cold start
 
 ## クラスタ管理コマンド
 

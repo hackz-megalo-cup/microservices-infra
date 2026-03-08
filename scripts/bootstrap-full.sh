@@ -99,6 +99,10 @@ _step_observability() {
     kubectl apply --server-side --force-conflicts -f "$f"
   done
 
+  # Wait for CRDs to be established before applying CRs (Prometheus, Alertmanager, etc.)
+  kubectl wait --for=condition=established crd prometheuses.monitoring.coreos.com --timeout=60s
+  kubectl wait --for=condition=established crd alertmanagers.monitoring.coreos.com --timeout=60s
+
   kubectl apply -f "${REPO_ROOT}/manifests-result/kube-prometheus-stack/" --server-side --force-conflicts
   kubectl apply -f "${REPO_ROOT}/manifests-result/loki/" --server-side --force-conflicts
   kubectl apply -f "${REPO_ROOT}/manifests-result/tempo/" --server-side --force-conflicts
@@ -132,19 +136,42 @@ _step_traefik() {
   kubectl apply --server-side -f "${REPO_ROOT}/patches/traefik-auth.yaml"
 }
 
-_step_wait_all() {
-  # Wait for PostgreSQL
-  echo "Waiting for PostgreSQL to be ready..."
-  kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=postgresql -n database --timeout=180s
-
-  # Wait for observability pods (grafana + prometheus)
-  echo "Waiting for observability pods to be created..."
-  for label in "app.kubernetes.io/name=grafana" "app.kubernetes.io/name=prometheus"; do
-    until kubectl get pod -n observability -l "$label" 2>/dev/null | grep -q .; do
-      sleep 2
-    done
-    kubectl wait --for=condition=ready pod -l "$label" -n observability --timeout=300s
+_wait_for_pod() {
+  local label="$1" namespace="$2" timeout="${3:-300}"
+  local max_poll=120 waited=0
+  until kubectl get pod -n "$namespace" -l "$label" 2>/dev/null | grep -q .; do
+    sleep 2
+    waited=$((waited + 2))
+    if [[ $waited -ge $max_poll ]]; then
+      echo "WARNING: pod with label '$label' not found in $namespace after ${max_poll}s, skipping"
+      return 0
+    fi
   done
+  kubectl wait --for=condition=ready pod -l "$label" -n "$namespace" --timeout="${timeout}s"
+}
+
+_step_wait_all() {
+  echo "Waiting for pods (parallel)..."
+
+  kubectl wait --for=condition=ready pod \
+    -l app.kubernetes.io/name=postgresql -n database --timeout=180s &
+  local pid_pg=$!
+
+  _wait_for_pod "app.kubernetes.io/name=grafana" "observability" 300 &
+  local pid_gr=$!
+
+  _wait_for_pod "app.kubernetes.io/name=prometheus" "observability" 300 &
+  local pid_pr=$!
+
+  local failed=0
+  wait $pid_pg || failed=1
+  wait $pid_gr || failed=1
+  wait $pid_pr || failed=1
+
+  if [[ "$failed" -ne 0 ]]; then
+    echo "ERROR: Some pods failed to become ready" >&2
+    return 1
+  fi
 }
 
 # ===========================================================================
