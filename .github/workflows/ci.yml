@@ -46,11 +46,17 @@ jobs:
       - name: Render manifests
         run: bash scripts/gen-manifests.sh
       - uses: peter-evans/create-pull-request@v7
+        id: cpr
         with:
           commit-message: "chore: render nixidy manifests"
           title: "chore: render nixidy manifests"
           branch: chore/render-manifests
           delete-branch: true
+      - name: Enable auto-merge
+        if: steps.cpr.outputs.pull-request-operation == 'created' || steps.cpr.outputs.pull-request-operation == 'updated'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr merge ${{ steps.cpr.outputs.pull-request-number }} --auto --squash
 
   build-otel-image:
     runs-on: ${{ matrix.runner }}
