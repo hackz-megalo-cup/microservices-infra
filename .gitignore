@@ -33,3 +33,9 @@ Thumbs.db
 logs/
 
 docs/plans/
+
+# Bootstrap state (warm cluster hash)
+.bootstrap-state/
+
+# Local cache (OTel image tar from R2)
+.cache/

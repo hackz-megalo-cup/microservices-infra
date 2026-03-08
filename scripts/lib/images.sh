@@ -36,5 +36,18 @@ PRELOAD_IMAGES_FULL=(
   "ecr-public.aws.com/docker/library/redis:8.2.3-alpine"
 )
 
+# ---------------------------------------------------------------------------
+# Dev images — no Cilium, OTel is fetched from R2 separately
+# ---------------------------------------------------------------------------
+PRELOAD_IMAGES_DEV=(
+  "registry-1.docker.io/bitnami/postgresql:latest"
+  "docker.io/grafana/grafana:12.4.0"
+  "quay.io/prometheus/prometheus:v3.10.0"
+  "docker.io/grafana/loki:3.6.5"
+  "docker.io/grafana/tempo:2.9.0"
+  "docker.io/traefik:v3.6.9"
+  "dxflrs/garage:v1.1.0"
+)
+
 # Mark as loaded
 _IMAGES_LOADED="true"

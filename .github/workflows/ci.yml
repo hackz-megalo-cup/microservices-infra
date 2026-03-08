@@ -43,7 +43,7 @@ jobs:
       - name: Install shellcheck
         run: sudo apt-get update && sudo apt-get install -y shellcheck
       - name: Run shellcheck
-        run: shellcheck scripts/*.sh
+        run: shellcheck scripts/*.sh scripts/lib/*.sh
 
   treefmt-check:
     runs-on: ubuntu-latest
@@ -52,3 +52,58 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@main
       - name: Check formatting
         run: nix fmt -- --fail-on-change
+
+  build-otel-image:
+    runs-on: ${{ matrix.runner }}
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    strategy:
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            arch: x86_64-linux
+          - runner: ubuntu-24.04-arm
+            arch: aarch64-linux
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v27
+        with:
+          extra_nix_config: |
+            accept-flake-config = true
+
+      - name: Compute OTel input hash
+        id: hash
+        run: |
+          HASH=$(sha256sum flake.nix flake.lock | sha256sum | cut -d' ' -f1)
+          echo "hash=$HASH" >> "$GITHUB_OUTPUT"
+
+      - name: Check R2 cache
+        id: cache
+        env:
+          R2_PUBLIC_DOMAIN: ${{ secrets.R2_PUBLIC_DOMAIN }}
+        run: |
+          if [[ -z "$R2_PUBLIC_DOMAIN" ]]; then
+            echo "hit=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "https://${R2_PUBLIC_DOMAIN}/otel-collector/${{ matrix.arch }}/${{ steps.hash.outputs.hash }}.tar")
+          echo "hit=$([[ "$STATUS" == "200" ]] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      - name: Build OTel image
+        if: steps.cache.outputs.hit == 'false'
+        run: |
+          nix build .#packages.${{ matrix.arch }}.otel-collector-image
+          nix run .#packages.${{ matrix.arch }}.otel-collector-image.copyTo \
+            -- docker-archive:otel-collector.tar
+
+      - name: Upload to R2
+        if: steps.cache.outputs.hit == 'false'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_ENDPOINT_URL: https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
+          AWS_REGION: auto
+        run: |
+          pip install awscli 2>/dev/null || true
+          aws s3 cp otel-collector.tar \
+            "s3://microservices-infra-cache/otel-collector/${{ matrix.arch }}/${{ steps.hash.outputs.hash }}.tar"

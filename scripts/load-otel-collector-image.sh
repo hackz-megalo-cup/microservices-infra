@@ -42,6 +42,60 @@ _otel_load() {
   kind load docker-image "otel-collector:latest" --name "${CLUSTER_NAME}"
 }
 
+# ---------------------------------------------------------------------------
+# R2 cache fetch (smart mode)
+# ---------------------------------------------------------------------------
+R2_BUCKET_URL="${R2_BUCKET_URL:-}"
+
+_compute_otel_hash() {
+  shasum -a 256 "${REPO_ROOT}/flake.nix" "${REPO_ROOT}/flake.lock" \
+    | shasum -a 256 | cut -d' ' -f1
+}
+
+_otel_fetch_r2() {
+  # R2 URL 未設定なら即 fail → fallback
+  if [[ -z "$R2_BUCKET_URL" ]]; then
+    return 1
+  fi
+
+  local hash arch url tar_path
+  hash="$(_compute_otel_hash)"
+  arch="${PLATFORM_LINUX_SYSTEM}"
+  url="${R2_BUCKET_URL%/}/${arch}/${hash}.tar"
+  tar_path="${REPO_ROOT}/.cache/otel-collector-${hash}.tar"
+
+  # ローカルキャッシュヒット
+  if [[ -f "$tar_path" ]]; then
+    echo "==> OTel image found in local cache (${hash:0:12}...)" >&2
+    echo "$tar_path"
+    return 0
+  fi
+
+  # R2 から取得
+  mkdir -p "${REPO_ROOT}/.cache"
+  echo "==> Fetching OTel image from R2 (${arch}/${hash:0:12}...)..." >&2
+  if curl -sfL --max-time 30 -o "${tar_path}.tmp" "$url" && [[ -s "${tar_path}.tmp" ]]; then
+    mv "${tar_path}.tmp" "$tar_path"
+    echo "==> OTel image fetched from R2" >&2
+    echo "$tar_path"
+    return 0
+  fi
+
+  rm -f "${tar_path}.tmp"
+  return 1
+}
+
+_otel_smart() {
+  local tar_path
+  if tar_path="$(_otel_fetch_r2)" && [[ -f "$tar_path" ]]; then
+    echo "==> Loading OTel image from cache..."
+    docker load < "$tar_path"
+  else
+    echo "==> R2 cache miss or not configured. Building locally..."
+    _otel_build
+  fi
+}
+
 case "$MODE" in
   build)
     _otel_build
@@ -49,8 +103,11 @@ case "$MODE" in
   load)
     _otel_load
     ;;
+  smart)
+    _otel_smart
+    ;;
   full|*)
-    _otel_build
+    _otel_smart
     _otel_load
     ;;
 esac
