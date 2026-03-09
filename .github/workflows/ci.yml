@@ -1,6 +1,7 @@
 name: CI
 
 on:
+  workflow_dispatch:
   pull_request:
   push:
     branches:
@@ -9,17 +10,44 @@ on:
       - "manifests/**"
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  lint:
+  changes:
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      nix: ${{ steps.filter.outputs.nix }}
+      scripts: ${{ steps.filter.outputs.scripts }}
+      otel: ${{ steps.filter.outputs.otel }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            nix:
+              - 'flake.nix'
+              - 'flake.lock'
+              - '**/*.nix'
+            scripts:
+              - 'scripts/**'
+            otel:
+              - 'otel-collector/**'
+
+  lint:
+    needs: [changes]
+    if: >-
+      (needs.changes.outputs.nix == 'true' || needs.changes.outputs.scripts == 'true')
+      && github.event_name != 'push'
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      - uses: cachix/install-nix-action@v27
+      - uses: cachix/install-nix-action@v31
         with:
           extra_nix_config: |
             accept-flake-config = true
@@ -31,15 +59,18 @@ jobs:
         run: nix fmt -- --fail-on-change
 
   render-manifests:
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: [changes]
+    if: >-
+      (needs.changes.outputs.nix == 'true' || needs.changes.outputs.scripts == 'true')
+      && github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     timeout-minutes: 15
     permissions:
       contents: write
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
-      - uses: cachix/install-nix-action@v27
+      - uses: cachix/install-nix-action@v31
         with:
           extra_nix_config: |
             accept-flake-config = true
@@ -58,52 +89,69 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh pr merge ${{ steps.cpr.outputs.pull-request-number }} --auto --squash
 
-  build-otel-image:
-    runs-on: ${{ matrix.runner }}
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    timeout-minutes: 30
-    strategy:
-      matrix:
-        include:
-          - runner: ubuntu-latest
-            arch: x86_64-linux
-          - runner: ubuntu-24.04-arm
-            arch: aarch64-linux
+  check-otel-cache:
+    needs: [changes]
+    if: >-
+      (needs.changes.outputs.nix == 'true' || needs.changes.outputs.otel == 'true')
+      && github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.check.outputs.matrix }}
+      has_builds: ${{ steps.check.outputs.has_builds }}
     steps:
       - uses: actions/checkout@v4
-      - uses: cachix/install-nix-action@v27
+      - name: Compute hash and check R2 cache
+        id: check
+        env:
+          R2_PUBLIC_DOMAIN: ${{ secrets.R2_PUBLIC_DOMAIN }}
+        run: |
+          HASH=$(sha256sum flake.nix flake.lock | sha256sum | cut -d' ' -f1)
+          MATRIX='{"include":['
+          FIRST=true
+          for entry in "blacksmith-2vcpu-ubuntu-2404:x86_64-linux" "blacksmith-2vcpu-ubuntu-2404-arm:aarch64-linux"; do
+            RUNNER="${entry%%:*}"
+            ARCH="${entry##*:}"
+            HIT=false
+            if [[ -n "$R2_PUBLIC_DOMAIN" ]]; then
+              STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+                "https://${R2_PUBLIC_DOMAIN}/otel-collector/${ARCH}/${HASH}.tar")
+              [[ "$STATUS" == "200" ]] && HIT=true
+            fi
+            if [[ "$HIT" == "false" ]]; then
+              $FIRST || MATRIX+=','
+              MATRIX+="{\"runner\":\"${RUNNER}\",\"arch\":\"${ARCH}\",\"hash\":\"${HASH}\"}"
+              FIRST=false
+            fi
+          done
+          MATRIX+=']}'
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+          if [[ "$FIRST" == "true" ]]; then
+            echo "has_builds=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_builds=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  build-otel-image:
+    needs: [check-otel-cache]
+    if: needs.check-otel-cache.outputs.has_builds == 'true'
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    strategy:
+      matrix: ${{ fromJSON(needs.check-otel-cache.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v31
         with:
           extra_nix_config: |
             accept-flake-config = true
 
-      - name: Compute OTel input hash
-        id: hash
-        run: |
-          HASH=$(sha256sum flake.nix flake.lock | sha256sum | cut -d' ' -f1)
-          echo "hash=$HASH" >> "$GITHUB_OUTPUT"
-
-      - name: Check R2 cache
-        id: cache
-        env:
-          R2_PUBLIC_DOMAIN: ${{ secrets.R2_PUBLIC_DOMAIN }}
-        run: |
-          if [[ -z "$R2_PUBLIC_DOMAIN" ]]; then
-            echo "hit=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-            "https://${R2_PUBLIC_DOMAIN}/otel-collector/${{ matrix.arch }}/${{ steps.hash.outputs.hash }}.tar")
-          echo "hit=$([[ "$STATUS" == "200" ]] && echo true || echo false)" >> "$GITHUB_OUTPUT"
-
       - name: Build OTel image
-        if: steps.cache.outputs.hit == 'false'
         run: |
           nix build .#packages.${{ matrix.arch }}.otel-collector-image
           nix run .#packages.${{ matrix.arch }}.otel-collector-image.copyTo \
             -- docker-archive:otel-collector.tar
 
       - name: Upload to R2
-        if: steps.cache.outputs.hit == 'false'
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
@@ -112,4 +160,4 @@ jobs:
         run: |
           pip install awscli 2>/dev/null || true
           aws s3 cp otel-collector.tar \
-            "s3://microservices-infra-cache/otel-collector/${{ matrix.arch }}/${{ steps.hash.outputs.hash }}.tar"
+            "s3://microservices-infra-cache/otel-collector/${{ matrix.arch }}/${{ steps.check-otel-cache.outputs.hash || matrix.hash }}.tar"
