@@ -1,5 +1,8 @@
 # microservice-infra
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/hackz-megalo-cup/microservices-infra)
+[![Mintlify Docs](https://img.shields.io/badge/docs-Mintlify-0ea5e9?logo=mintlify&logoColor=white)](https://mintlify.com/hackz-megalo-cup/microservices-infra)
+
 マイクロサービス基盤のインフラ定義リポジトリ。Kind クラスタ上に監視・ネットワーク・GitOps スタックを構築する。
 
 ## アーキテクチャ概要
