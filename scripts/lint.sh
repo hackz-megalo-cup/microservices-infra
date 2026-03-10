@@ -91,7 +91,7 @@ run_check() {
 # ---------------------------------------------------------------------------
 # Check: shellcheck
 # ---------------------------------------------------------------------------
-# shellcheck disable=SC2329
+# shellcheck disable=SC2317,SC2329
 check_shellcheck() {
   if ! command -v shellcheck &>/dev/null; then
     echo "WARNING: shellcheck not found in PATH, skipping" >&2
@@ -116,7 +116,7 @@ check_shellcheck() {
 # ---------------------------------------------------------------------------
 # Check: nix flake check
 # ---------------------------------------------------------------------------
-# shellcheck disable=SC2329
+# shellcheck disable=SC2317,SC2329
 check_nix_flake() {
   if ! command -v nix &>/dev/null; then
     echo "WARNING: nix not found in PATH, skipping" >&2
@@ -130,7 +130,7 @@ check_nix_flake() {
 # ---------------------------------------------------------------------------
 # Check: nix fmt (formatting)
 # ---------------------------------------------------------------------------
-# shellcheck disable=SC2329
+# shellcheck disable=SC2317,SC2329
 check_nix_fmt() {
   if ! command -v nix &>/dev/null; then
     echo "WARNING: nix not found in PATH, skipping" >&2
