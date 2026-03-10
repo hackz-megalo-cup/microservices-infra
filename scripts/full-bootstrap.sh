@@ -190,6 +190,27 @@ _step_cloudflared() {
   fi
 }
 
+_step_traefik() {
+  kubectl apply --server-side -f "${REPO_ROOT}/manifests-result/traefik/Namespace-edge.yaml"
+  # Apply CRDs first (skip Gateway API CRDs to avoid conflict with v1.5.0 installed in Step 1.6)
+  for f in "${REPO_ROOT}/manifests-result/traefik/CustomResourceDefinition-"*.yaml; do
+    if ! grep -q "gateway.networking.k8s.io" "$f"; then
+      kubectl apply --server-side --force-conflicts -f "$f"
+    fi
+  done
+  # Apply all traefik components (skip Gateway API CRD manifests)
+  for f in "${REPO_ROOT}/manifests-result/traefik/"*.yaml; do
+    if ! grep -q "gateway.networking.k8s.io" "$f"; then
+      kubectl apply --server-side --force-conflicts -f "$f"
+    fi
+  done
+  echo "Waiting for Traefik to be ready..."
+  until kubectl get pod -n edge -l app.kubernetes.io/name=traefik 2>/dev/null | grep -q .; do
+    sleep 2
+  done
+  kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=traefik -n edge --timeout=120s
+}
+
 _step_postgresql_apply() {
   kubectl apply --server-side -f "${REPO_ROOT}/manifests-result/postgresql/Namespace-database.yaml"
   kubectl apply --server-side -f "${REPO_ROOT}/manifests-result/postgresql/ConfigMap-postgresql-init-scripts.yaml"
@@ -258,12 +279,13 @@ _cold_start() {
   timed_step "phase2-network" _step_network_setup
 
   # --- Phase 3: Deploy services (parallel) ---
-  export -f _step_argocd_apply _step_garage_deploy _step_observability _step_cloudflared
+  export -f _step_argocd_apply _step_garage_deploy _step_observability _step_cloudflared _step_traefik
   timed_step "phase3-deploy" parallel_run \
     "argocd-apply:_step_argocd_apply" \
     "garage:_step_garage_deploy" \
     "observability:_step_observability" \
-    "cloudflared:_step_cloudflared"
+    "cloudflared:_step_cloudflared" \
+    "traefik:_step_traefik"
 
   # --- Phase 4: Wait for all pods (parallel) ---
   timed_step "phase4-wait" _step_wait_all
@@ -278,6 +300,7 @@ _warm_reapply() {
 
   _step_argocd_apply
   _step_observability
+  _step_traefik
   _step_postgresql_apply
   _step_cloudflared
   _step_wait_all

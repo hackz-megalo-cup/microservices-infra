@@ -109,6 +109,8 @@ spec:
             - mountPath: /tmp
               name: tmp
       hostNetwork: false
+      nodeSelector:
+        ingress-ready: "true"
       securityContext:
         runAsGroup: 65532
         runAsNonRoot: true
@@ -117,6 +119,10 @@ spec:
           type: RuntimeDefault
       serviceAccountName: traefik
       terminationGracePeriodSeconds: 60
+      tolerations:
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/control-plane
+          operator: Exists
       volumes:
         - emptyDir: {}
           name: data

@@ -28,6 +28,18 @@
 
         logs.general.level = "INFO";
 
+        nodeSelector = {
+          "ingress-ready" = "true";
+        };
+
+        tolerations = [
+          {
+            key = "node-role.kubernetes.io/control-plane";
+            operator = "Exists";
+            effect = "NoSchedule";
+          }
+        ];
+
         tracing = {
           otlp = {
             grpc = {
