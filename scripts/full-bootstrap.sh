@@ -298,6 +298,9 @@ _warm_reapply() {
 
   _step_argocd_apply
   _step_observability
+  _step_garage_deploy
+  _step_redpanda_deploy
+  _step_istio_policies
   _step_postgresql_apply
   _step_cloudflared
   _step_wait_all

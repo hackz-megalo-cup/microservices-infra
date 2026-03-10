@@ -261,6 +261,8 @@ _warm_reapply() {
 
   _step_observability
   _step_traefik
+  _step_garage_deploy
+  _step_redpanda_deploy
   _step_postgresql_apply
   _step_cloudflared
   _step_wait_all
