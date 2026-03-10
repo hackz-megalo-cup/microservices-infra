@@ -16,6 +16,7 @@
 | Ingress | Traefik (CORS / auth / rate-limit middleware) |
 | 監視 | Prometheus, Grafana, Loki, Tempo, OTel Collector |
 | オブジェクトストレージ | Garage (Loki/Tempo バックエンド) |
+| メッセージング | Redpanda (Kafka 互換ブローカー) + Console UI |
 | データベース | PostgreSQL |
 | マニフェスト生成 | nixidy (Nix + Kustomize) |
 
@@ -74,6 +75,7 @@ full-bootstrap
 | 30093 | Alertmanager | |
 | 30300 | Grafana (admin/admin) | |
 | 31235 | Hubble UI | Cilium / Full モードのみ |
+| 30082 | Redpanda Console | |
 | 30080 | ArgoCD HTTP | Full モードのみ |
 | 30443 | ArgoCD HTTPS | Full モードのみ |
 
