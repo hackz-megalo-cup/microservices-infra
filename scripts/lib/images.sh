@@ -25,6 +25,7 @@ PRELOAD_IMAGES=(
   "docker.io/grafana/tempo:2.9.0"
   "docker.io/traefik:v3.6.9"
   "dxflrs/garage:v1.1.0"
+  "docker.redpanda.com/redpandadata/redpanda:v25.3.10"
 )
 
 # ---------------------------------------------------------------------------
@@ -49,6 +50,7 @@ PRELOAD_IMAGES_DEV=(
   "docker.io/grafana/tempo:2.9.0"
   "docker.io/traefik:v3.6.9"
   "dxflrs/garage:v1.1.0"
+  "docker.redpanda.com/redpandadata/redpanda:v25.3.10"
 )
 
 # Mark as loaded

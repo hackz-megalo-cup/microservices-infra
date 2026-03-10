@@ -15,34 +15,47 @@ nodes:
       # ArgoCD HTTP
       - containerPort: 30080
         hostPort: 30080
+        listenAddress: "127.0.0.1"
         protocol: TCP
       # ArgoCD HTTPS
       - containerPort: 30443
         hostPort: 30443
+        listenAddress: "127.0.0.1"
         protocol: TCP
       # Grafana
       - containerPort: 30300
         hostPort: 30300
+        listenAddress: "127.0.0.1"
         protocol: TCP
       # Traefik HTTP
       - containerPort: 30081
         hostPort: 30081
+        listenAddress: "127.0.0.1"
         protocol: TCP
       # Traefik HTTPS
       - containerPort: 30444
         hostPort: 30444
+        listenAddress: "127.0.0.1"
         protocol: TCP
       # Hubble UI
       - containerPort: 31235
         hostPort: 31235
+        listenAddress: "127.0.0.1"
         protocol: TCP
       # Prometheus UI
       - containerPort: 30090
         hostPort: 30090
+        listenAddress: "127.0.0.1"
         protocol: TCP
       # Alertmanager UI
       - containerPort: 30093
         hostPort: 30093
+        listenAddress: "127.0.0.1"
+        protocol: TCP
+      # Redpanda Console
+      - containerPort: 30082
+        hostPort: 30082
+        listenAddress: "127.0.0.1"
         protocol: TCP
   - role: worker
   - role: worker

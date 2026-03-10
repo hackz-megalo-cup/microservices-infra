@@ -22,6 +22,8 @@ source "${SCRIPT_DIR}/lib/images.sh"
 CLUSTER_NAME="microservice-infra"
 _BG_IMAGE_LOAD_PID=""
 
+platform_docker_desktop_check
+
 # ===========================================================================
 # Helper functions (one per timed_step)
 # ===========================================================================
@@ -120,6 +122,15 @@ _step_observability() {
   kubectl apply -f "${REPO_ROOT}/manifests-result/otel-collector/" --server-side --force-conflicts
 }
 
+_step_redpanda_deploy() {
+  if [[ -d "${REPO_ROOT}/manifests-result/redpanda/" ]]; then
+    kubectl create namespace messaging --dry-run=client -o yaml | kubectl apply -f -
+    kubectl apply -f "${REPO_ROOT}/manifests-result/redpanda/" --server-side --force-conflicts || true
+  else
+    echo "Skipping Redpanda: manifests not generated yet"
+  fi
+}
+
 _step_cloudflared() {
   if kubectl get secret tunnel-credentials -n cloudflare &>/dev/null; then
     kubectl apply -f "${REPO_ROOT}/manifests-result/cloudflared/" --server-side
@@ -208,11 +219,12 @@ timed_step "phase2-network" _step_network_setup
 # --- Phase 3: Deploy services (parallel) ---
 # garage, observability, traefik, cloudflared run concurrently
 # (postgresql already started at end of Phase 2 for maximum startup overlap)
-export -f _step_garage_deploy _step_observability _step_traefik _step_cloudflared
+export -f _step_garage_deploy _step_observability _step_traefik _step_redpanda_deploy _step_cloudflared
 timed_step "phase3-deploy" parallel_run \
   "garage:_step_garage_deploy" \
   "observability:_step_observability" \
   "traefik:_step_traefik" \
+  "redpanda:_step_redpanda_deploy" \
   "cloudflared:_step_cloudflared"
 
 
@@ -235,3 +247,4 @@ echo "  Prometheus:   http://localhost:30090"
 echo "  Alertmanager: http://localhost:30093"
 echo "  Hubble UI:    http://localhost:31235"
 echo "  Traefik:      http://localhost:30081"
+echo "  Redpanda:     http://localhost:30082"

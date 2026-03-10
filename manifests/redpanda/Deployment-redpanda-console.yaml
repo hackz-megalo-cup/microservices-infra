@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations: {}
+  labels:
+    app.kubernetes.io/instance: redpanda
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: console
+    app.kubernetes.io/version: v3.3.2
+    helm.sh/chart: console-3.3.0
+  name: redpanda-console
+  namespace: messaging
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: redpanda
+      app.kubernetes.io/name: console
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        checksum/config: 9d821a99e05110e538fceadce787ffe4c17fed32155a78988745380e1218260b
+      labels:
+        app.kubernetes.io/instance: redpanda
+        app.kubernetes.io/name: console
+    spec:
+      affinity: {}
+      automountServiceAccountToken: false
+      containers:
+        - args:
+            - --config.filepath=/etc/console/configs/config.yaml
+          envFrom: []
+          image: docker.redpanda.com/redpandadata/console:v3.3.2
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /admin/health
+              port: http
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: console
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /admin/health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources: {}
+          securityContext:
+            runAsNonRoot: true
+          volumeMounts:
+            - mountPath: /etc/console/configs
+              name: configs
+              readOnly: true
+      imagePullSecrets: []
+      nodeSelector: {}
+      priorityClassName: ""
+      securityContext:
+        fsGroup: 99
+        fsGroupChangePolicy: Always
+        runAsUser: 99
+      serviceAccountName: redpanda-console
+      tolerations: []
+      topologySpreadConstraints: []
+      volumes:
+        - configMap:
+            name: redpanda-console
+          name: configs

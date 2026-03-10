@@ -19,6 +19,8 @@ source "${SCRIPT_DIR}/lib/parallel.sh"
 source "${SCRIPT_DIR}/lib/images.sh"
 
 CLUSTER_NAME="microservice-infra"
+
+platform_docker_desktop_check
 HASH_DIR="${REPO_ROOT}/.bootstrap-state"
 KIND_CONFIG="${REPO_ROOT}/k8s/kind-config-dev.yaml"
 
@@ -161,6 +163,15 @@ _step_traefik() {
   kubectl apply --server-side -f "${REPO_ROOT}/patches/traefik-auth.yaml"
 }
 
+_step_redpanda_deploy() {
+  if [[ -d "${REPO_ROOT}/manifests-result/redpanda/" ]]; then
+    kubectl create namespace messaging --dry-run=client -o yaml | kubectl apply -f -
+    kubectl apply -f "${REPO_ROOT}/manifests-result/redpanda/" --server-side --force-conflicts || true
+  else
+    echo "Skipping Redpanda: manifests not generated yet"
+  fi
+}
+
 _step_cloudflared() {
   if kubectl get secret tunnel-credentials -n cloudflare &>/dev/null; then
     kubectl apply -f "${REPO_ROOT}/manifests-result/cloudflared/" --server-side
@@ -229,11 +240,12 @@ _cold_start() {
   _step_postgresql_apply
 
   # --- Phase 3: Deploy services (parallel) ---
-  export -f _step_garage_deploy _step_observability _step_traefik _step_cloudflared
+  export -f _step_garage_deploy _step_observability _step_traefik _step_cloudflared _step_redpanda_deploy
   timed_step "phase3-deploy" parallel_run \
     "garage:_step_garage_deploy" \
     "observability:_step_observability" \
     "traefik:_step_traefik" \
+    "redpanda:_step_redpanda_deploy" \
     "cloudflared:_step_cloudflared"
 
   # --- Phase 4: Wait for all pods (parallel) ---
@@ -310,6 +322,7 @@ echo "  Grafana:      http://localhost:30300  (admin/admin)"
 echo "  Prometheus:   http://localhost:30090"
 echo "  Alertmanager: http://localhost:30093"
 echo "  Traefik:      http://localhost:30081"
+echo "  Redpanda:     http://localhost:30082"
 echo ""
 echo "Options:"
 echo "  bootstrap --clean  : Force full rebuild"
