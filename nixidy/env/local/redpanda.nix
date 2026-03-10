@@ -42,6 +42,7 @@
         };
         monitoring = {
           enabled = true;
+          enableHttp2 = false;
         };
         console = {
           enabled = true;

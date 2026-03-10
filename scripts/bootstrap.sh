@@ -17,6 +17,8 @@ source "${SCRIPT_DIR}/lib/monitor.sh"
 source "${SCRIPT_DIR}/lib/parallel.sh"
 # shellcheck source=lib/images.sh
 source "${SCRIPT_DIR}/lib/images.sh"
+# shellcheck source=lib/crds.sh
+source "${SCRIPT_DIR}/lib/crds.sh"
 
 CLUSTER_NAME="microservice-infra"
 
@@ -236,7 +238,8 @@ _cold_start() {
   # --- Phase 2: Image load (no Cilium install!) ---
   timed_step "phase2-load" _step_image_load
 
-  # --- Phase 2.5: PostgreSQL early start ---
+  # --- Phase 2.5: CRD pre-install + PostgreSQL early start ---
+  install_monitoring_crds
   _step_postgresql_apply
 
   # --- Phase 3: Deploy services (parallel) ---

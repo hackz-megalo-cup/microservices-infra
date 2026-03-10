@@ -19,6 +19,8 @@ source "${SCRIPT_DIR}/lib/monitor.sh"
 source "${SCRIPT_DIR}/lib/parallel.sh"
 # shellcheck source=lib/images.sh
 source "${SCRIPT_DIR}/lib/images.sh"
+# shellcheck source=lib/crds.sh
+source "${SCRIPT_DIR}/lib/crds.sh"
 
 CLUSTER_NAME="microservice-infra"
 KIND_CONFIG="${REPO_ROOT}/k8s/kind-config.yaml"
@@ -137,7 +139,8 @@ _step_network_setup() {
   wait "$_BG_IMAGE_LOAD_PID" 2>/dev/null || true
   _BG_IMAGE_LOAD_PID=""
 
-  # 7. Start PostgreSQL early (longest pod startup, ~87s)
+  # 7. Pre-install monitoring CRDs + Start PostgreSQL early (longest pod startup, ~87s)
+  install_monitoring_crds
   echo "Starting PostgreSQL early..."
   _step_postgresql_apply
 }

@@ -12,7 +12,7 @@ metadata:
   namespace: messaging
 spec:
   endpoints:
-    - enableHttp2: null
+    - enableHttp2: false
       interval: 30s
       path: /public_metrics
       port: admin
