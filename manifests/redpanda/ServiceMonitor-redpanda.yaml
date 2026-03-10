@@ -1,0 +1,25 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  creationTimestamp: null
+  labels:
+    app.kubernetes.io/component: redpanda
+    app.kubernetes.io/instance: redpanda
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redpanda
+    helm.sh/chart: redpanda-25.3.2
+  name: redpanda
+  namespace: messaging
+spec:
+  endpoints:
+    - enableHttp2: false
+      interval: 30s
+      path: /public_metrics
+      port: admin
+      scheme: http
+  namespaceSelector: {}
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: redpanda
+      app.kubernetes.io/name: redpanda
+      monitoring.redpanda.com/enabled: "true"

@@ -21,27 +21,45 @@ nodes:
               auto-compaction-retention: "5m"
       - |
         kind: KubeletConfiguration
-        imageGCHighThresholdPercent: 100
+        imageGCHighThresholdPercent: 95
+        imageGCLowThresholdPercent: 80
         evictionHard:
-          nodefs.available: "0%"
-          nodefs.inodesFree: "0%"
-          imagefs.available: "0%"
+          nodefs.available: "2%"
+          nodefs.inodesFree: "2%"
+          imagefs.available: "2%"
+        evictionSoft:
+          nodefs.available: "5%"
+          imagefs.available: "5%"
+        evictionSoftGracePeriod:
+          nodefs.available: "1m"
+          imagefs.available: "1m"
     extraPortMappings:
       - containerPort: 30300
         hostPort: 30300
+        listenAddress: "127.0.0.1"
         protocol: TCP
       - containerPort: 30081
         hostPort: 30081
+        listenAddress: "127.0.0.1"
         protocol: TCP
       - containerPort: 30444
         hostPort: 30444
+        listenAddress: "127.0.0.1"
         protocol: TCP
       - containerPort: 31235
         hostPort: 31235
+        listenAddress: "127.0.0.1"
         protocol: TCP
       - containerPort: 30090
         hostPort: 30090
+        listenAddress: "127.0.0.1"
         protocol: TCP
       - containerPort: 30093
         hostPort: 30093
+        listenAddress: "127.0.0.1"
+        protocol: TCP
+      # Redpanda Console
+      - containerPort: 30082
+        hostPort: 30082
+        listenAddress: "127.0.0.1"
         protocol: TCP

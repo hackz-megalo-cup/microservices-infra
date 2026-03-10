@@ -16,3 +16,41 @@ spec:
         attempts: 3
         perTryTimeout: 2s
         retryOn: connect-failure,refused-stream,unavailable,cancelled,retriable-status-codes
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: caller-retry
+  namespace: microservices
+spec:
+  hosts:
+    - caller-service
+  http:
+    - route:
+        - destination:
+            host: caller-service
+            port:
+              number: 8081
+      retries:
+        attempts: 3
+        perTryTimeout: 5s
+        retryOn: connect-failure,refused-stream,unavailable,cancelled,retriable-status-codes
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: gateway-retry
+  namespace: microservices
+spec:
+  hosts:
+    - gateway
+  http:
+    - route:
+        - destination:
+            host: gateway
+            port:
+              number: 8082
+      retries:
+        attempts: 2
+        perTryTimeout: 3s
+        retryOn: connect-failure,refused-stream,unavailable

@@ -13,6 +13,8 @@
     ./local/image-updater.nix
     ./local/cloudflared.nix
     ./local/postgresql.nix
+    ./local/redpanda.nix
+    ./local/reloader.nix
   ];
 
   nixidy = {

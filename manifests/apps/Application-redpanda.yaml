@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: redpanda
+  namespace: argocd
+spec:
+  destination:
+    namespace: messaging
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: ./manifests/redpanda
+    repoURL: https://github.com/thirdlf03/microservice-infra
+    targetRevision: main
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

@@ -1,0 +1,86 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+    helm.sh/hook-weight: "-5"
+  labels:
+    app.kubernetes.io/component: redpanda
+    app.kubernetes.io/instance: redpanda
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redpanda
+    helm.sh/chart: redpanda-25.3.2
+  name: redpanda-configuration
+  namespace: messaging
+spec:
+  template:
+    metadata:
+      annotations: {}
+      generateName: redpanda-post-
+      labels:
+        app.kubernetes.io/component: redpanda-post-install
+        app.kubernetes.io/instance: redpanda
+        app.kubernetes.io/name: redpanda
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - command:
+            - /redpanda-operator
+            - sync-cluster-config
+            - --users-directory
+            - /etc/secrets/users
+            - --redpanda-yaml
+            - /tmp/base-config/redpanda.yaml
+            - --bootstrap-yaml
+            - /tmp/config/.bootstrap.yaml
+          image: docker.redpanda.com/redpandadata/redpanda-operator:v25.3.1
+          name: post-install
+          resources: {}
+          securityContext: {}
+          volumeMounts:
+            - mountPath: /tmp/config
+              name: config
+            - mountPath: /tmp/base-config
+              name: base-config
+      imagePullSecrets: []
+      initContainers:
+        - command:
+            - /redpanda-operator
+            - bootstrap
+            - --in-dir
+            - /tmp/base-config
+            - --out-dir
+            - /tmp/config
+          image: docker.redpanda.com/redpandadata/redpanda-operator:v25.3.1
+          name: bootstrap-yaml-envsubst
+          resources:
+            limits:
+              cpu: 100m
+              memory: 125Mi
+            requests:
+              cpu: 100m
+              memory: 125Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+          volumeMounts:
+            - mountPath: /tmp/config/
+              name: config
+            - mountPath: /tmp/base-config/
+              name: base-config
+      nodeSelector: {}
+      restartPolicy: Never
+      securityContext:
+        fsGroup: 101
+        fsGroupChangePolicy: OnRootMismatch
+        runAsUser: 101
+      serviceAccountName: redpanda
+      tolerations: []
+      volumes:
+        - configMap:
+            name: redpanda
+          name: base-config
+        - emptyDir: {}
+          name: config

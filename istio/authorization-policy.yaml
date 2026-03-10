@@ -50,3 +50,22 @@ spec:
   - from:
     - source:
         principals: ["cluster.local/ns/microservices/sa/*"]
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: admin-only
+  namespace: microservices
+spec:
+  targetRefs:
+    - kind: Service
+      group: ""
+      name: gateway
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            requestPrincipals: ["*"]
+      when:
+        - key: request.auth.claims[role]
+          values: ["admin"]

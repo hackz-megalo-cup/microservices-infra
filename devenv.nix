@@ -133,6 +133,15 @@
       echo "=== Recent events ==="
       kubectl get events -A --sort-by=.lastTimestamp | tail -10
     '';
+    test-bootstrap.exec = ''
+      bash "$DEVENV_ROOT/scripts/test-bootstrap.sh" "$@"
+    '';
+    preflight-check.exec = ''
+      bash "$DEVENV_ROOT/scripts/preflight-check.sh"
+    '';
+    lint.exec = ''
+      bash "$DEVENV_ROOT/scripts/lint.sh" "$@"
+    '';
   };
 
   enterShell = ''
@@ -158,6 +167,9 @@
     echo "  cloudflared-setup : Setup Cloudflare Tunnel + DNS"
     echo "  benchmark        : Run bootstrap benchmark (N iterations)"
     echo "  debug-k8s        : Kubernetes pod/event debug"
+    echo "  test-bootstrap   : Automated bootstrap test cycle (clean + verify)"
+    echo "  preflight-check  : Pre-flight platform compatibility checker"
+    echo "  lint             : Local linting (mirrors CI: shellcheck, nix fmt)"
     echo ""
     echo "Cilium / Hubble:"
     echo "  cilium status            : Check Cilium health"

@@ -9,6 +9,22 @@ source "${SCRIPT_DIR}/lib/platform.sh"
 
 CLUSTER_NAME="microservice-infra"
 MODE="${1:-full}"
+IMAGE_NAME="otel-collector:latest"
+
+# docker load + ensure the image is tagged as otel-collector:latest
+# nix2container's copyTo docker-archive may omit RepoTags, resulting in
+# an untagged image that kind cannot find.
+_docker_load_and_tag() {
+  local output
+  output="$(docker load < "$1")"
+  echo "$output"
+  if echo "$output" | grep -q "Loaded image ID:"; then
+    local image_id
+    image_id="$(echo "$output" | grep -oE 'sha256:[a-f0-9]+')"
+    docker tag "$image_id" "$IMAGE_NAME"
+    echo "==> Tagged ${image_id} as ${IMAGE_NAME}"
+  fi
+}
 
 _otel_build() {
   if [ "$PLATFORM_OS" = "darwin" ]; then
@@ -27,7 +43,7 @@ _otel_build() {
       "
 
     echo "==> Loading OTel Collector image into Docker daemon..."
-    docker load < "${REPO_ROOT}/otel-collector-image.tar"
+    _docker_load_and_tag "${REPO_ROOT}/otel-collector-image.tar"
     rm -f "${REPO_ROOT}/otel-collector-image.tar"
   else
     echo "==> Building OTel Collector image (nix) for ${PLATFORM_LINUX_SYSTEM}..."
@@ -35,6 +51,20 @@ _otel_build() {
 
     echo "==> Copying OTel Collector image to Docker daemon..."
     nix run "${REPO_ROOT}#packages.${PLATFORM_LINUX_SYSTEM}.otel-collector-image.copyToDockerDaemon"
+
+    # Safety check: verify the image is tagged after copyToDockerDaemon
+    if ! docker image inspect "$IMAGE_NAME" &>/dev/null; then
+      echo "==> WARNING: copyToDockerDaemon did not tag image as ${IMAGE_NAME}, attempting manual tag..."
+      local latest_id
+      latest_id="$(docker images --no-trunc --format '{{.ID}} {{.CreatedAt}}' | sort -k2 -r | head -1 | awk '{print $1}')"
+      if [[ -n "$latest_id" ]]; then
+        docker tag "$latest_id" "$IMAGE_NAME"
+        echo "==> Tagged ${latest_id} as ${IMAGE_NAME}"
+      else
+        echo "==> ERROR: Could not find image to tag" >&2
+        return 1
+      fi
+    fi
   fi
 }
 
@@ -90,7 +120,7 @@ _otel_smart() {
   local tar_path
   if tar_path="$(_otel_fetch_r2)" && [[ -f "$tar_path" ]]; then
     echo "==> Loading OTel image from cache..."
-    docker load < "$tar_path"
+    _docker_load_and_tag "$tar_path"
   else
     echo "==> R2 cache miss or not configured. Building locally..."
     _otel_build

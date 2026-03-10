@@ -18,6 +18,9 @@ secrets/*.plain
 .env.*
 !.env.example
 
+# Claude Code
+.claude/settings.local.json
+
 # IDE & editors
 .vscode/
 .idea/
