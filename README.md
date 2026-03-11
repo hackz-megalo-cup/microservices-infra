@@ -12,11 +12,13 @@
 | Kubernetes | Kind (ローカル開発用) |
 | CNI | Cilium + Hubble UI |
 | Service Mesh | Istio (ambient mode) |
-| GitOps | ArgoCD + ApplicationSet |
+| GitOps | ArgoCD + ApplicationSet + Image Updater |
 | Ingress | Traefik (CORS / auth / rate-limit middleware) |
+| 外部トンネル | Cloudflare Tunnel (cloudflared) |
 | 監視 | Prometheus, Grafana, Loki, Tempo, OTel Collector |
 | オブジェクトストレージ | Garage (Loki/Tempo バックエンド) |
 | メッセージング | Redpanda (Kafka 互換ブローカー) + Console UI |
+| デプロイ自動化 | Reloader (ConfigMap/Secret 変更時の自動再起動) |
 | データベース | PostgreSQL |
 | マニフェスト生成 | nixidy (Nix + Kustomize) |
 
@@ -71,6 +73,7 @@ full-bootstrap
 | ポート | サービス | 備考 |
 |---|---|---|
 | 30081 | Traefik HTTP | |
+| 30444 | Traefik HTTPS | |
 | 30090 | Prometheus | |
 | 30093 | Alertmanager | |
 | 30300 | Grafana (admin/admin) | |
@@ -82,18 +85,24 @@ full-bootstrap
 ### その他のコマンド
 
 ```
-cluster-up / cluster-down    Kind クラスタの作成・削除
-cluster-stop / cluster-start クラスタの停止・再開 (状態保持)
-bootstrap-full               Cilium モードセットアップ
-benchmark N                  ブートストラップベンチマーク (N回実行)
-gen-manifests                nixidy マニフェスト再生成
-cilium-install               Cilium + Hubble インストール
-istio-install                Istio ambient mode インストール
-argocd-bootstrap             ArgoCD ブートストラップ
-cloudflared-setup            Cloudflare Tunnel + DNS セットアップ
-watch-manifests              nixidy モジュール変更を監視して自動適用
-nix-check                    Nix 式の簡易チェック
-debug-k8s                    Pod / Event デバッグ
+cluster-up / cluster-down       Kind クラスタの作成・削除
+cluster-stop / cluster-start    クラスタの停止・再開 (状態保持)
+bootstrap-full                  Cilium モードセットアップ
+benchmark N                     ブートストラップベンチマーク (N回実行)
+gen-manifests                   nixidy マニフェスト再生成
+cilium-install                  Cilium + Hubble インストール
+istio-install                   Istio ambient mode インストール
+argocd-bootstrap                ArgoCD ブートストラップ
+cloudflared-setup               Cloudflare Tunnel + DNS セットアップ
+watch-manifests                 nixidy モジュール変更を監視して自動適用
+nix-check                       Nix 式の簡易チェック
+debug-k8s                       Pod / Event デバッグ
+sops-init                       SOPS 用 age キー生成
+load-otel-collector-image       カスタム OTel Collector を Kind にロード
+fix-chart-hash                  nixidy モジュールの空 chartHash を自動修正
+test-bootstrap                  ブートストラップの自動テスト (クリーン + 検証)
+preflight-check                 プラットフォーム互換性の事前チェック
+lint                            ローカルリント (CI と同等: shellcheck, nix fmt)
 ```
 
 ## ディレクトリ構成
@@ -115,10 +124,10 @@ debug-k8s                    Pod / Event デバッグ
 
 ## アプリケーション開発
 
-アプリケーション (Go / Node.js / React) の開発手順・コマンド・フロントエンド開発については [microservice-app の README](https://github.com/hackz-megalo-cup/microservices-app#readme) を参照。
+アプリケーション (Go / Node.js / React) の開発手順・コマンド・フロントエンド開発については [microservices-app の README](https://github.com/hackz-megalo-cup/microservices-app#readme) を参照。
 
-このリポジトリはインフラ基盤の構築・運用のみを扱う。アプリのデプロイは `microservice-app` 側で `tilt up` または `docker compose up` で行う。
+このリポジトリはインフラ基盤の構築・運用のみを扱う。アプリのデプロイは `microservices-app` 側で `tilt up` または `docker compose up` で行う。
 
 ## 関連リポジトリ
 
-- [microservice-app](https://github.com/hackz-megalo-cup/microservice-app) -- アプリケーションコード (Go / Node.js / React)
+- [microservices-app](https://github.com/hackz-megalo-cup/microservices-app) -- アプリケーションコード (Go / Node.js / React)
