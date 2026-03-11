@@ -17,12 +17,9 @@ source "${SCRIPT_DIR}/lib/monitor.sh"
 source "${SCRIPT_DIR}/lib/parallel.sh"
 # shellcheck source=lib/images.sh
 source "${SCRIPT_DIR}/lib/images.sh"
-# shellcheck source=lib/crds.sh
-source "${SCRIPT_DIR}/lib/crds.sh"
 
 CLUSTER_NAME="microservice-infra"
 
-platform_docker_desktop_check
 HASH_DIR="${REPO_ROOT}/.bootstrap-state"
 KIND_CONFIG="${REPO_ROOT}/k8s/kind-config-dev.yaml"
 
@@ -104,55 +101,17 @@ _step_image_preload() {
 
 _step_image_load() {
   echo "Loading images into kind cluster..."
-  kind load docker-image "${PRELOAD_IMAGES_DEV[@]}" --name "${CLUSTER_NAME}" &>/dev/null &
-  local bg_pid=$!
-
-  # OTel image load
-  bash "${SCRIPT_DIR}/load-otel-collector-image.sh" load
-
-  wait "$bg_pid" 2>/dev/null || true
+  kind load docker-image "${PRELOAD_IMAGES_DEV[@]}" --name "${CLUSTER_NAME}" 2>/dev/null || true
 }
 
 _step_postgresql_apply() {
   kubectl apply --server-side -f "${REPO_ROOT}/manifests-result/postgresql/Namespace-database.yaml"
   kubectl apply --server-side -f "${REPO_ROOT}/manifests-result/postgresql/ConfigMap-postgresql-init-scripts.yaml"
-  kubectl apply -f "${REPO_ROOT}/manifests-result/postgresql/" --server-side --force-conflicts || true
-}
-
-_step_garage_deploy() {
-  kubectl create namespace storage --dry-run=client -o yaml | kubectl apply -f -
-  kubectl apply -f "${REPO_ROOT}/manifests-result/garage/" --server-side --force-conflicts
-  echo "Waiting for Garage to be ready..."
-  until kubectl get pod --no-headers -n storage -l app.kubernetes.io/name=garage 2>/dev/null | grep -q .; do
-    sleep 2
+  # Skip ServiceMonitor (monitoring CRDs not installed in dev-fast mode)
+  for f in "${REPO_ROOT}/manifests-result/postgresql/"*.yaml; do
+    [[ "$(basename "$f")" == ServiceMonitor-* ]] && continue
+    kubectl apply -f "$f" --server-side --force-conflicts || true
   done
-  kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=garage -n storage --timeout=120s
-  echo "Running Garage setup..."
-  bash "${SCRIPT_DIR}/garage-setup.sh"
-}
-
-_step_observability() {
-  kubectl apply --server-side -f "${REPO_ROOT}/manifests-result/kube-prometheus-stack/Namespace-observability.yaml"
-  for f in "${REPO_ROOT}/manifests-result/kube-prometheus-stack/CustomResourceDefinition-"*.yaml; do
-    kubectl apply --server-side --force-conflicts -f "$f"
-  done
-
-  # Wait for CRDs to be established before applying CRs (Prometheus, Alertmanager, etc.)
-  if kubectl get crd prometheuses.monitoring.coreos.com &>/dev/null; then
-    kubectl wait --for=condition=established crd prometheuses.monitoring.coreos.com --timeout=60s
-  else
-    echo "WARNING: CRD prometheuses.monitoring.coreos.com not found, skipping wait" >&2
-  fi
-  if kubectl get crd alertmanagers.monitoring.coreos.com &>/dev/null; then
-    kubectl wait --for=condition=established crd alertmanagers.monitoring.coreos.com --timeout=60s
-  else
-    echo "WARNING: CRD alertmanagers.monitoring.coreos.com not found, skipping wait" >&2
-  fi
-
-  kubectl apply -f "${REPO_ROOT}/manifests-result/kube-prometheus-stack/" --server-side --force-conflicts
-  kubectl apply -f "${REPO_ROOT}/manifests-result/loki/" --server-side --force-conflicts
-  kubectl apply -f "${REPO_ROOT}/manifests-result/tempo/" --server-side --force-conflicts
-  kubectl apply -f "${REPO_ROOT}/manifests-result/otel-collector/" --server-side --force-conflicts
 }
 
 _step_traefik() {
@@ -165,59 +124,10 @@ _step_traefik() {
   kubectl apply --server-side -f "${REPO_ROOT}/patches/traefik-auth.yaml"
 }
 
-_step_redpanda_deploy() {
-  if [[ -d "${REPO_ROOT}/manifests-result/redpanda/" ]]; then
-    kubectl create namespace messaging --dry-run=client -o yaml | kubectl apply -f -
-    kubectl apply -f "${REPO_ROOT}/manifests-result/redpanda/" --server-side --force-conflicts || true
-  else
-    echo "Skipping Redpanda: manifests not generated yet"
-  fi
-}
-
-_step_cloudflared() {
-  if kubectl get secret tunnel-credentials -n cloudflare &>/dev/null; then
-    kubectl apply -f "${REPO_ROOT}/manifests-result/cloudflared/" --server-side
-  else
-    echo "Skipping: run 'cloudflared-setup' first to create tunnel credentials"
-  fi
-}
-
-_wait_for_pod() {
-  local label="$1" namespace="$2" timeout="${3:-300}"
-  local max_poll=120 waited=0
-  until kubectl get pod --no-headers -n "$namespace" -l "$label" 2>/dev/null | grep -q .; do
-    sleep 2
-    waited=$((waited + 2))
-    if [[ $waited -ge $max_poll ]]; then
-      echo "WARNING: pod with label '$label' not found in $namespace after ${max_poll}s, skipping"
-      return 0
-    fi
-  done
-  kubectl wait --for=condition=ready pod -l "$label" -n "$namespace" --timeout="${timeout}s"
-}
-
 _step_wait_all() {
-  echo "Waiting for pods (parallel)..."
-
+  echo "Waiting for pods..."
   kubectl wait --for=condition=ready pod \
-    -l app.kubernetes.io/name=postgresql -n database --timeout=180s &
-  local pid_pg=$!
-
-  _wait_for_pod "app.kubernetes.io/name=grafana" "observability" 300 &
-  local pid_gr=$!
-
-  _wait_for_pod "app.kubernetes.io/name=prometheus" "observability" 300 &
-  local pid_pr=$!
-
-  local failed=0
-  wait $pid_pg || failed=1
-  wait $pid_gr || failed=1
-  wait $pid_pr || failed=1
-
-  if [[ "$failed" -ne 0 ]]; then
-    echo "ERROR: Some pods failed to become ready" >&2
-    return 1
-  fi
+    -l app.kubernetes.io/name=postgresql -n database --timeout=180s
 }
 
 # ===========================================================================
@@ -232,26 +142,18 @@ _cold_start() {
   timed_step "phase1-prep" parallel_run \
     "kind-cluster:_step_kind_cluster" \
     "gen-manifests:bash ${SCRIPT_DIR}/gen-manifests.sh" \
-    "otel-fetch:bash ${SCRIPT_DIR}/load-otel-collector-image.sh smart" \
     "image-preload:_step_image_preload"
 
   # --- Phase 2: Image load (no Cilium install!) ---
   timed_step "phase2-load" _step_image_load
 
-  # --- Phase 2.5: CRD pre-install + PostgreSQL early start ---
-  install_monitoring_crds
-  _step_postgresql_apply
+  # --- Phase 2.5: PostgreSQL early start ---
+  timed_step "phase2.5-pg" _step_postgresql_apply
 
-  # --- Phase 3: Deploy services (parallel) ---
-  export -f _step_garage_deploy _step_observability _step_traefik _step_cloudflared _step_redpanda_deploy
-  timed_step "phase3-deploy" parallel_run \
-    "garage:_step_garage_deploy" \
-    "observability:_step_observability" \
-    "traefik:_step_traefik" \
-    "redpanda:_step_redpanda_deploy" \
-    "cloudflared:_step_cloudflared"
+  # --- Phase 3: Deploy Traefik ---
+  timed_step "phase3-deploy" _step_traefik
 
-  # --- Phase 4: Wait for all pods (parallel) ---
+  # --- Phase 4: Wait for PostgreSQL ---
   timed_step "phase4-wait" _step_wait_all
 
   _save_hashes
@@ -262,12 +164,8 @@ _warm_reapply() {
   echo "=== Warm reapply: manifests changed ==="
   bash "${SCRIPT_DIR}/gen-manifests.sh"
 
-  _step_observability
   _step_traefik
-  _step_garage_deploy
-  _step_redpanda_deploy
   _step_postgresql_apply
-  _step_cloudflared
   _step_wait_all
 
   _save_hashes
@@ -323,11 +221,7 @@ echo "Node: single control-plane"
 echo ""
 echo "Next: cd microservices-app && tilt up"
 echo ""
-echo "  Grafana:      http://localhost:30300  (admin/admin)"
-echo "  Prometheus:   http://localhost:30090"
-echo "  Alertmanager: http://localhost:30093"
 echo "  Traefik:      http://localhost:30081"
-echo "  Redpanda:     http://localhost:30082"
 echo ""
 echo "Options:"
 echo "  bootstrap --clean  : Force full rebuild"

@@ -132,6 +132,22 @@ platform_memory_gb() {
   esac
 }
 
+# Returns total memory in MB (integer, for percentage calculations)
+platform_memory_mb() {
+  case "$PLATFORM_OS" in
+    darwin)
+      local bytes
+      bytes="$(sysctl -n hw.memsize 2>/dev/null)" || { echo "0"; return; }
+      echo $(( bytes / 1048576 ))
+      ;;
+    linux)
+      local kb
+      kb="$(grep -m1 "^MemTotal:" /proc/meminfo 2>/dev/null | awk '{print $2}')" || { echo "0"; return; }
+      echo $(( kb / 1024 ))
+      ;;
+  esac
+}
+
 # Returns Docker server version
 platform_docker_version() {
   docker version --format '{{.Server.Version}}' 2>/dev/null || echo "not installed"

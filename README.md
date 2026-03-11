@@ -34,7 +34,7 @@
 
 ### Dev-fast セットアップ (推奨)
 
-kindnetd (Cilium なし)、シングルノード構成。warm cluster 対応で 2 回目以降は設定が変わっていなければ即完了 (hash gate)。
+kindnetd (Cilium なし)、シングルノード構成。PostgreSQL + Traefik のみデプロイする軽量モード。warm cluster 対応で 2 回目以降は設定が変わっていなければ即完了 (hash gate)。
 
 ```bash
 bootstrap
@@ -74,11 +74,11 @@ full-bootstrap
 |---|---|---|
 | 30081 | Traefik HTTP | |
 | 30444 | Traefik HTTPS | |
-| 30090 | Prometheus | |
-| 30093 | Alertmanager | |
-| 30300 | Grafana (admin/admin) | |
+| 30090 | Prometheus | Cilium / Full モードのみ |
+| 30093 | Alertmanager | Cilium / Full モードのみ |
+| 30300 | Grafana (admin/admin) | Cilium / Full モードのみ |
 | 31235 | Hubble UI | Cilium / Full モードのみ |
-| 30082 | Redpanda Console | |
+| 30082 | Redpanda Console | Cilium / Full モードのみ |
 | 30080 | ArgoCD HTTP | Full モードのみ |
 | 30443 | ArgoCD HTTPS | Full モードのみ |
 
