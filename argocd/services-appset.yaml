@@ -6,7 +6,7 @@ metadata:
 spec:
   generators:
     - git:
-        repoURL: https://github.com/thirdlf03/microservice-app.git
+        repoURL: https://github.com/hackz-megalo-cup/microservices-app.git
         directories:
           - path: services/*/k8s/generated
           - path: frontend/k8s/generated
@@ -18,7 +18,7 @@ spec:
     spec:
       project: default
       source:
-        repoURL: https://github.com/thirdlf03/microservice-app.git
+        repoURL: https://github.com/hackz-megalo-cup/microservices-app.git
         targetRevision: main
         path: '{{path}}'
       destination:
