@@ -11,6 +11,7 @@
         auth = {
           username = "devuser";
           password = "devpass";
+          postgresPassword = "admin";
           database = "postgres";
         };
 
