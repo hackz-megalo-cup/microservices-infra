@@ -142,6 +142,12 @@
     lint.exec = ''
       bash "$DEVENV_ROOT/scripts/lint.sh" "$@"
     '';
+    agones-install = {
+      exec = ''
+        bash "$DEVENV_ROOT/scripts/agones-install.sh"
+      '';
+      description = "Install Agones game server orchestrator";
+    };
   };
 
   enterShell = ''
@@ -170,6 +176,7 @@
     echo "  test-bootstrap   : Automated bootstrap test cycle (clean + verify)"
     echo "  preflight-check  : Pre-flight platform compatibility checker"
     echo "  lint             : Local linting (mirrors CI: shellcheck, nix fmt)"
+    echo "  agones-install   : Install Agones game server orchestrator"
     echo ""
     echo "Cilium / Hubble:"
     echo "  cilium status            : Check Cilium health"
