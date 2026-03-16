@@ -63,3 +63,92 @@ nodes:
         hostPort: 30082
         listenAddress: "127.0.0.1"
         protocol: TCP
+      # Agones GameServer ports (TCP+UDP for WebTransport + WebSocket)
+      - containerPort: 7000
+        hostPort: 7000
+        listenAddress: "127.0.0.1"
+        protocol: TCP
+      - containerPort: 7000
+        hostPort: 7000
+        listenAddress: "127.0.0.1"
+        protocol: UDP
+      - containerPort: 7001
+        hostPort: 7001
+        listenAddress: "127.0.0.1"
+        protocol: TCP
+      - containerPort: 7001
+        hostPort: 7001
+        listenAddress: "127.0.0.1"
+        protocol: UDP
+      - containerPort: 7002
+        hostPort: 7002
+        listenAddress: "127.0.0.1"
+        protocol: TCP
+      - containerPort: 7002
+        hostPort: 7002
+        listenAddress: "127.0.0.1"
+        protocol: UDP
+      - containerPort: 7003
+        hostPort: 7003
+        listenAddress: "127.0.0.1"
+        protocol: TCP
+      - containerPort: 7003
+        hostPort: 7003
+        listenAddress: "127.0.0.1"
+        protocol: UDP
+      - containerPort: 7004
+        hostPort: 7004
+        listenAddress: "127.0.0.1"
+        protocol: TCP
+      - containerPort: 7004
+        hostPort: 7004
+        listenAddress: "127.0.0.1"
+        protocol: UDP
+      - containerPort: 7005
+        hostPort: 7005
+        listenAddress: "127.0.0.1"
+        protocol: TCP
+      - containerPort: 7005
+        hostPort: 7005
+        listenAddress: "127.0.0.1"
+        protocol: UDP
+      - containerPort: 7006
+        hostPort: 7006
+        listenAddress: "127.0.0.1"
+        protocol: TCP
+      - containerPort: 7006
+        hostPort: 7006
+        listenAddress: "127.0.0.1"
+        protocol: UDP
+      - containerPort: 7007
+        hostPort: 7007
+        listenAddress: "127.0.0.1"
+        protocol: TCP
+      - containerPort: 7007
+        hostPort: 7007
+        listenAddress: "127.0.0.1"
+        protocol: UDP
+      - containerPort: 7008
+        hostPort: 7008
+        listenAddress: "127.0.0.1"
+        protocol: TCP
+      - containerPort: 7008
+        hostPort: 7008
+        listenAddress: "127.0.0.1"
+        protocol: UDP
+      - containerPort: 7009
+        hostPort: 7009
+        listenAddress: "127.0.0.1"
+        protocol: TCP
+      - containerPort: 7009
+        hostPort: 7009
+        listenAddress: "127.0.0.1"
+        protocol: UDP
+      - containerPort: 7010
+        hostPort: 7010
+        listenAddress: "127.0.0.1"
+        protocol: TCP
+      - containerPort: 7010
+        hostPort: 7010
+        listenAddress: "127.0.0.1"
+        protocol: UDP
