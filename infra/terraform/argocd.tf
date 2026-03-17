@@ -81,11 +81,11 @@ resource "kubectl_manifest" "argocd_services_appset" {
             repoURL: https://github.com/hackz-megalo-cup/microservices-app.git
             revision: main
             directories:
-              - path: services/*/k8s/generated
-              - path: frontend/k8s/generated
+              - path: deploy/manifests/*
+              - path: '!deploy/manifests/apps'
       template:
         metadata:
-          name: '{{path[0]}}-{{path[1]}}'
+          name: '{{path.basename}}'
           annotations:
             argocd.argoproj.io/manifest-generate-paths: '{{path}}'
         spec:
