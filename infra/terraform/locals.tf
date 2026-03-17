@@ -31,6 +31,6 @@ locals {
   }
 
   observability_bucket_name = lower(
-    "${var.cluster_name}-${data.aws_caller_identity.current.account_id}-${var.aws_region}-observability"
+    "${var.cluster_name}-${data.aws_caller_identity.current.account_id}-obs"
   )
 }

@@ -1,7 +1,7 @@
 variable "aws_region" {
   description = "AWS region for all managed resources."
   type        = string
-  default     = "us-east-1"
+  default     = "ap-northeast-1"
 }
 
 variable "cluster_name" {
@@ -50,4 +50,10 @@ variable "node_max_size" {
   description = "Maximum node count for the shared managed node group."
   type        = number
   default     = 4
+}
+
+variable "cloudflare_tunnel_id" {
+  description = "Cloudflare Tunnel ID for cloudflared ingress."
+  type        = string
+  default     = "8fc158d4-7a76-4472-bddd-f58f461c880e"
 }
