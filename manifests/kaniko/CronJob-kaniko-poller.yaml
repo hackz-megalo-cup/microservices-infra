@@ -36,7 +36,7 @@ spec:
           serviceAccountName: kaniko-builder
           volumes:
             - configMap:
-                defaultMode: 755
+                defaultMode: 493
                 name: kaniko-poll-script
               name: script
             - name: state

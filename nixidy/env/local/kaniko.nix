@@ -89,7 +89,7 @@ in
             volumes = {
               script.configMap = {
                 name = "kaniko-poll-script";
-                defaultMode = 0755;
+                defaultMode = 493;
               };
               state.persistentVolumeClaim.claimName = "kaniko-poll-state";
             };
