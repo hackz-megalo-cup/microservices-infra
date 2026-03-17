@@ -187,6 +187,67 @@
             apiVersion = "traefik.io/v1alpha1";
             kind = "IngressRoute";
             metadata = {
+              name = "raid-allocate-route";
+              namespace = "microservices";
+            };
+            spec = {
+              entryPoints = [ "web" ];
+              routes = [
+                {
+                  match = "PathPrefix(`/api/raid`)";
+                  kind = "Rule";
+                  priority = 95;
+                  middlewares = [
+                    { name = "cors-middleware"; }
+                    { name = "rate-limit-middleware"; }
+                  ];
+                  services = [
+                    {
+                      name = "gateway";
+                      port = 8082;
+                    }
+                  ];
+                }
+              ];
+            };
+          }
+          {
+            apiVersion = "rbac.authorization.k8s.io/v1";
+            kind = "ClusterRole";
+            metadata = {
+              name = "gateway-agones-allocator";
+            };
+            rules = [
+              {
+                apiGroups = [ "allocation.agones.dev" ];
+                resources = [ "gameserverallocations" ];
+                verbs = [ "create" ];
+              }
+            ];
+          }
+          {
+            apiVersion = "rbac.authorization.k8s.io/v1";
+            kind = "ClusterRoleBinding";
+            metadata = {
+              name = "gateway-agones-allocator";
+            };
+            roleRef = {
+              apiGroup = "rbac.authorization.k8s.io";
+              kind = "ClusterRole";
+              name = "gateway-agones-allocator";
+            };
+            subjects = [
+              {
+                kind = "ServiceAccount";
+                name = "default";
+                namespace = "microservices";
+              }
+            ];
+          }
+          {
+            apiVersion = "traefik.io/v1alpha1";
+            kind = "IngressRoute";
+            metadata = {
               name = "frontend-route";
               namespace = "microservices";
             };
