@@ -12,15 +12,21 @@
         image.tag = "v3.6.9";
 
         service = {
-          type = "NodePort";
-          spec = {
-            externalTrafficPolicy = "Cluster";
+          type = "LoadBalancer";
+          annotations = {
+            "service.beta.kubernetes.io/aws-load-balancer-type" = "external";
+            "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type" = "ip";
+            "service.beta.kubernetes.io/aws-load-balancer-scheme" = "internet-facing";
+            "service.beta.kubernetes.io/aws-load-balancer-ssl-cert" = "PLACEHOLDER_ACM_CERT_ARN";
+            "service.beta.kubernetes.io/aws-load-balancer-ssl-ports" = "443";
+            "service.beta.kubernetes.io/aws-load-balancer-listen-ports" = ''[{"HTTPS": 443}]'';
+            "service.beta.kubernetes.io/aws-load-balancer-target-group-attributes" = "stickiness.enabled=false";
           };
         };
 
         ports = {
-          web.nodePort = 30081;
-          websecure.nodePort = 30444;
+          web.port = 80;
+          websecure.port = 443;
         };
 
         providers = {
@@ -64,7 +70,10 @@
                 "X-User-Agent"
                 "Idempotency-Key"
               ];
-              accessControlAllowOriginList = [ "http://localhost:5173" ];
+              accessControlAllowOriginList = [
+                "http://localhost:5173"
+                "https://app.thirdlf03.com"
+              ];
               accessControlExposeHeaders = [
                 "Grpc-Status"
                 "Grpc-Message"

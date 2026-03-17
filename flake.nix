@@ -95,6 +95,24 @@
               (nix2containerPkgs.nix2container.buildLayer { deps = [ otel-collector ]; })
             ];
           };
+
+          # Custom Helm charts not available in nixhelm
+          customCharts = {
+            eks = {
+              aws-load-balancer-controller = pkgs.fetchurl {
+                url = "https://aws.github.io/eks-charts/aws-load-balancer-controller-3.1.0.tgz";
+                hash = "sha256-CM1Az/q/GHrhstzof9Mpu1Js891NUxFzYtHdghHL1YQ=";
+              };
+            };
+            agones = {
+              agones = pkgs.fetchurl {
+                url = "https://agones.dev/chart/stable/agones-1.56.0.tgz";
+                hash = "sha256-eQ0OUl4mzgH4WdiZpz3N+KpHAU9Fp9mLpDQqtenyqls=";
+              };
+            };
+          };
+
+          allCharts = inputs.nixhelm.chartsDerivations.${system} // customCharts;
         in
         {
           devenv.shells.default = {
@@ -111,12 +129,12 @@
           legacyPackages.nixidyEnvs = {
             local = inputs.nixidy.lib.mkEnv {
               inherit pkgs;
-              charts = inputs.nixhelm.chartsDerivations.${system};
+              charts = allCharts;
               modules = [ ./nixidy/env/local.nix ];
             };
             prod = inputs.nixidy.lib.mkEnv {
               inherit pkgs;
-              charts = inputs.nixhelm.chartsDerivations.${system};
+              charts = allCharts;
               modules = [ ./nixidy/env/prod.nix ];
             };
           };

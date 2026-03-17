@@ -15,6 +15,8 @@
     ./local/grafana-dashboards.nix
     ./local/image-updater.nix
     ./local/cloudflared.nix
+    ./local/aws-lb-controller.nix
+    ./local/agones.nix
     ./local/postgresql.nix
     ./local/redpanda.nix
     ./local/reloader.nix
