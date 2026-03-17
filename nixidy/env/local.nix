@@ -19,7 +19,7 @@
 
   nixidy = {
     target = {
-      repository = "https://github.com/thirdlf03/microservice-infra";
+      repository = "https://github.com/hackz-megalo-cup/microservices-infra";
       branch = "main";
       rootPath = "./manifests";
     };

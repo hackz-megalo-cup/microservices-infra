@@ -1,0 +1,5 @@
+bucket         = "replace-with-your-terraform-state-bucket"
+key            = "microservices-infra/aws/terraform.tfstate"
+region         = "us-east-1"
+dynamodb_table = "replace-with-your-terraform-lock-table"
+encrypt        = true

@@ -115,6 +115,7 @@ lint                            ローカルリント (CI と同等: shellcheck,
 | `k8s/` | Kind クラスタ設定 (kind-config.yaml, kind-config-lite.yaml, kind-config-dev.yaml) |
 | `scripts/` | ブートストラップ・セットアップスクリプト群 |
 | `argocd/` | ArgoCD ApplicationSet 定義 |
+| `infra/` | AWS 移行用 Terraform スキャフォールド |
 | `dashboards/` | Grafana ダッシュボード (grafonnet) |
 | `otel-collector/` | カスタム OTel Collector ビルド定義 |
 | `istio/` | Istio 関連設定 |

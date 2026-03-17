@@ -171,6 +171,7 @@
     echo "  cilium-install    : Install Cilium + Hubble into kind cluster"
     echo "  istio-install     : Install Istio ambient mode"
     echo "  cloudflared-setup : Setup Cloudflare Tunnel + DNS"
+    echo "  terraform         : Terraform CLI for AWS migration scaffolding"
     echo "  benchmark        : Run bootstrap benchmark (N iterations)"
     echo "  debug-k8s        : Kubernetes pod/event debug"
     echo "  test-bootstrap   : Automated bootstrap test cycle (clean + verify)"

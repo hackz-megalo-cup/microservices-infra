@@ -10,7 +10,7 @@ spec:
   project: default
   source:
     path: ./manifests/sample-app
-    repoURL: https://github.com/thirdlf03/microservice-infra
+    repoURL: https://github.com/hackz-megalo-cup/microservices-infra
     targetRevision: main
   syncPolicy:
     automated:

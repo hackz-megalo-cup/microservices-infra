@@ -23,6 +23,7 @@ jobs:
       nix: ${{ steps.filter.outputs.nix }}
       scripts: ${{ steps.filter.outputs.scripts }}
       otel: ${{ steps.filter.outputs.otel }}
+      terraform: ${{ steps.filter.outputs.terraform }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -37,11 +38,14 @@ jobs:
               - 'scripts/**'
             otel:
               - 'otel-collector/**'
+            terraform:
+              - 'infra/terraform/**'
+              - '.github/workflows/ci.yml'
 
   lint:
     needs: [changes]
     if: >-
-      (needs.changes.outputs.nix == 'true' || needs.changes.outputs.scripts == 'true')
+      (needs.changes.outputs.nix == 'true' || needs.changes.outputs.scripts == 'true' || needs.changes.outputs.terraform == 'true')
       && github.event_name != 'push'
     runs-on: blacksmith-2vcpu-ubuntu-2404
     timeout-minutes: 15
@@ -51,12 +55,21 @@ jobs:
         with:
           extra_nix_config: |
             accept-flake-config = true
+      - uses: hashicorp/setup-terraform@v3
       - name: Nix flake check
         run: nix flake check
       - name: Run shellcheck
         run: shellcheck -x -P SCRIPTDIR scripts/*.sh scripts/lib/*.sh
       - name: Check formatting
         run: nix fmt -- --fail-on-change
+      - name: Terraform format check
+        if: needs.changes.outputs.terraform == 'true'
+        run: terraform -chdir=infra/terraform fmt -check -recursive
+      - name: Terraform validate
+        if: needs.changes.outputs.terraform == 'true'
+        run: |
+          terraform -chdir=infra/terraform init -backend=false
+          terraform -chdir=infra/terraform validate
 
   render-manifests:
     needs: [changes]

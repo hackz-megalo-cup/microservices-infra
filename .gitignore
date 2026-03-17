@@ -18,6 +18,17 @@ secrets/*.plain
 .env.*
 !.env.example
 
+# Terraform
+.terraform/
+*.tfplan
+terraform.tfstate
+terraform.tfstate.*
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
 # Claude Code
 .claude/settings.local.json
 
