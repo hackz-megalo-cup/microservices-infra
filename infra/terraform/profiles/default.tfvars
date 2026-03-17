@@ -4,6 +4,7 @@ kubernetes_version = "1.32"
 use_nat_gateway    = false
 use_spot           = false
 node_instance_type = "t3.medium"
+node_disk_size     = 80
 node_desired_size  = 3
 node_min_size      = 3
 node_max_size      = 4

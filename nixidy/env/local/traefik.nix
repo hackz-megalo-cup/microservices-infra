@@ -4,8 +4,6 @@
     namespace = "edge";
     createNamespace = true;
 
-    resources.namespaces.microservices = { };
-
     helm.releases.traefik = {
       chart = charts.traefik.traefik;
       values = {
@@ -49,6 +47,7 @@
         };
 
         extraObjects = [
+          # The microservices namespace is owned by the service manifests repo.
           {
             apiVersion = "traefik.io/v1alpha1";
             kind = "Middleware";

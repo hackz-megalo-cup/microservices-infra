@@ -55,7 +55,7 @@ resource "aws_launch_template" "workers" {
   block_device_mappings {
     device_name = "/dev/xvda"
     ebs {
-      volume_size = 20
+      volume_size = var.node_disk_size
       volume_type = "gp3"
     }
   }

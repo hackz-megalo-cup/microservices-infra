@@ -34,6 +34,12 @@ variable "node_instance_type" {
   default     = "t3.large"
 }
 
+variable "node_disk_size" {
+  description = "Root volume size in GiB for the shared managed node group."
+  type        = number
+  default     = 80
+}
+
 variable "node_desired_size" {
   description = "Desired node count for the shared managed node group."
   type        = number
