@@ -11,16 +11,14 @@
           allocator = {
             service.serviceType = "ClusterIP";
           };
-
-          # Passthrough port range for game servers
-          gameservers = {
-            minPort = 7000;
-            maxPort = 8000;
-          };
+          metrics.prometheusEnabled = false;
         };
 
-        # Disable Prometheus ServiceMonitor (already managed by kube-prometheus-stack)
-        agones.metrics.prometheusEnabled = false;
+        # Passthrough port range for game servers (top-level, not under agones)
+        gameservers = {
+          minPort = 7000;
+          maxPort = 8000;
+        };
       };
     };
   };
