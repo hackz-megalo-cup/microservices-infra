@@ -65,6 +65,7 @@ in
           spec = {
             serviceAccountName = "kaniko-builder";
             restartPolicy = "Never";
+            securityContext.fsGroup = 1001;
             containers.poller = {
               image = "bitnami/kubectl:latest";
               command = [
