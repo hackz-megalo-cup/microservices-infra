@@ -6,7 +6,7 @@ let
   };
 
   tunnelConfig = ''
-    tunnel: microservice-infra
+    tunnel: 8fc158d4-7a76-4472-bddd-f58f461c880e
     credentials-file: /etc/cloudflared/creds/credentials.json
     metrics: 0.0.0.0:2000
     ingress:
