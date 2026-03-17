@@ -15,6 +15,7 @@
               s3 = {
                 bucket = "microservices-infra-eks-obs";
                 region = "ap-northeast-1";
+                endpoint = "s3.ap-northeast-1.amazonaws.com";
               };
               wal.path = "/var/tempo/wal";
             };

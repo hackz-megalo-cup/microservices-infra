@@ -42,6 +42,7 @@ data:
               path: /var/tempo/traces
             s3:
               bucket: microservices-infra-eks-obs
+              endpoint: s3.ap-northeast-1.amazonaws.com
               region: ap-northeast-1
             wal:
               path: /var/tempo/wal
