@@ -119,7 +119,7 @@
                 name = "aws-load-balancer-controller";
                 version = "3.1.0";
                 url = "https://aws.github.io/eks-charts/aws-load-balancer-controller-3.1.0.tgz";
-                hash = "sha256-CM1Az/q/GHrhstzof9Mpu1Js891NUxFzYtHdghHL1YQ=";
+                hash = "sha256-3VzSd2dMvlRktEHoQZ5srKu0Y8iLvmAvxFYpc9JYKX0=";
               };
             };
             agones = {
