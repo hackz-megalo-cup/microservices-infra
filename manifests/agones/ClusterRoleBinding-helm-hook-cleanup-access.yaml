@@ -1,0 +1,21 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  annotations:
+    helm.sh/hook: pre-delete
+    helm.sh/hook-delete-policy: before-hook-creation
+    helm.sh/hook-weight: "-4"
+  labels:
+    app: agones
+    chart: agones-1.56.0
+    heritage: Helm
+    release: agones
+  name: helm-hook-cleanup-access
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: helm-hook-cleanup
+subjects:
+  - apiGroup: rbac.authorization.k8s.io
+    kind: User
+    name: system:serviceaccount:agones-system:helm-hook-cleanup

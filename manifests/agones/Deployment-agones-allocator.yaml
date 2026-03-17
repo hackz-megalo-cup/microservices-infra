@@ -1,0 +1,130 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: agones
+    heritage: Helm
+    multicluster.agones.dev/role: allocator
+    release: agones
+  name: agones-allocator
+  namespace: agones-system
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: agones
+      heritage: Helm
+      multicluster.agones.dev/role: allocator
+      release: agones
+  template:
+    metadata:
+      annotations:
+        revision/tls-cert: "1"
+      labels:
+        app: agones
+        heritage: Helm
+        multicluster.agones.dev/role: allocator
+        release: agones
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - preference:
+                matchExpressions:
+                  - key: agones.dev/agones-system
+                    operator: Exists
+              weight: 1
+      containers:
+        - env:
+            - name: HTTP_PORT
+              value: "8443"
+            - name: GRPC_PORT
+              value: "8443"
+            - name: HTTP_UNALLOCATED_STATUS_CODE
+              value: "429"
+            - name: API_SERVER_QPS
+              value: "400"
+            - name: API_SERVER_QPS_BURST
+              value: "500"
+            - name: PROMETHEUS_EXPORTER
+              value: "false"
+            - name: STACKDRIVER_EXPORTER
+              value: "false"
+            - name: GCP_PROJECT_ID
+              value: ""
+            - name: STACKDRIVER_LABELS
+              value: ""
+            - name: DISABLE_MTLS
+              value: "false"
+            - name: DISABLE_TLS
+              value: "false"
+            - name: REMOTE_ALLOCATION_TIMEOUT
+              value: 10s
+            - name: TOTAL_REMOTE_ALLOCATION_TIMEOUT
+              value: 30s
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: CONTAINER_NAME
+              value: agones-allocator
+            - name: LOG_LEVEL
+              value: info
+            - name: FEATURE_GATES
+              value: ""
+            - name: ALLOCATION_BATCH_WAIT_TIME
+              value: 500ms
+            - name: READINESS_SHUTDOWN_DURATION
+              value: 18s
+          image: us-docker.pkg.dev/agones-images/release/agones-allocator:1.56.0
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /live
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 3
+            timeoutSeconds: 1
+          name: agones-allocator
+          ports:
+            - containerPort: 8443
+              name: https
+            - containerPort: 8080
+              name: http
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /ready
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1000
+          volumeMounts:
+            - mountPath: /home/allocator/tls
+              name: tls
+              readOnly: true
+            - mountPath: /home/allocator/client-ca
+              name: client-ca
+              readOnly: true
+      serviceAccountName: agones-allocator
+      terminationGracePeriodSeconds: 27
+      tolerations:
+        - effect: NoExecute
+          key: agones.dev/agones-system
+          operator: Equal
+          value: "true"
+      volumes:
+        - name: tls
+          secret:
+            secretName: allocator-tls
+        - name: client-ca
+          secret:
+            secretName: allocator-client-ca
