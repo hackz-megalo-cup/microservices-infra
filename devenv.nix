@@ -31,9 +31,6 @@
     # Container image operations
     pkgs.skopeo
 
-    # AWS IaC
-    pkgs.terraform
-
     # Nix tooling
     pkgs.nix-tree
     pkgs.nurl
