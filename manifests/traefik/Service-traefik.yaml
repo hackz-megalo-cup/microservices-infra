@@ -6,7 +6,7 @@ metadata:
     service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
     service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
     service.beta.kubernetes.io/aws-load-balancer-ssl-cert: arn:aws:acm:ap-northeast-1:860973283109:certificate/20647860-8ce1-4fa2-9578-fe5a197d3108
-    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "80"
     service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: stickiness.enabled=false
     service.beta.kubernetes.io/aws-load-balancer-type: external
   labels:
@@ -22,10 +22,6 @@ spec:
       port: 80
       protocol: TCP
       targetPort: web
-    - name: websecure
-      port: 443
-      protocol: TCP
-      targetPort: websecure
   selector:
     app.kubernetes.io/instance: traefik-edge
     app.kubernetes.io/name: traefik

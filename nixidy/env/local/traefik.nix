@@ -19,11 +19,14 @@
             "service.beta.kubernetes.io/aws-load-balancer-scheme" = "internet-facing";
             "service.beta.kubernetes.io/aws-load-balancer-ssl-cert" =
               "arn:aws:acm:ap-northeast-1:860973283109:certificate/20647860-8ce1-4fa2-9578-fe5a197d3108";
-            "service.beta.kubernetes.io/aws-load-balancer-ssl-ports" = "443";
+            "service.beta.kubernetes.io/aws-load-balancer-ssl-ports" = "80";
             "service.beta.kubernetes.io/aws-load-balancer-listen-ports" = ''[{"HTTPS": 443}]'';
             "service.beta.kubernetes.io/aws-load-balancer-target-group-attributes" = "stickiness.enabled=false";
           };
         };
+
+        # Hide websecure from Service; NLB terminates TLS and forwards plain HTTP to web (8000)
+        ports.websecure.expose.default = false;
 
         providers = {
           kubernetesCRD.enabled = true;
