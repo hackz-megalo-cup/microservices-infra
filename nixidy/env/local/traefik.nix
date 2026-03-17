@@ -25,11 +25,6 @@
           };
         };
 
-        ports = {
-          web.port = 80;
-          websecure.port = 443;
-        };
-
         providers = {
           kubernetesCRD.enabled = true;
           kubernetesIngress.enabled = true;
