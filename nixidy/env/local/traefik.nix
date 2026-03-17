@@ -17,7 +17,8 @@
             "service.beta.kubernetes.io/aws-load-balancer-type" = "external";
             "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type" = "ip";
             "service.beta.kubernetes.io/aws-load-balancer-scheme" = "internet-facing";
-            "service.beta.kubernetes.io/aws-load-balancer-ssl-cert" = "PLACEHOLDER_ACM_CERT_ARN";
+            "service.beta.kubernetes.io/aws-load-balancer-ssl-cert" =
+              "arn:aws:acm:ap-northeast-1:860973283109:certificate/20647860-8ce1-4fa2-9578-fe5a197d3108";
             "service.beta.kubernetes.io/aws-load-balancer-ssl-ports" = "443";
             "service.beta.kubernetes.io/aws-load-balancer-listen-ports" = ''[{"HTTPS": 443}]'';
             "service.beta.kubernetes.io/aws-load-balancer-target-group-attributes" = "stickiness.enabled=false";

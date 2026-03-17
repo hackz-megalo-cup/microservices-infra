@@ -14,12 +14,12 @@
           name = "aws-load-balancer-controller";
           annotations = {
             "eks.amazonaws.com/role-arn" =
-              "arn:aws:iam::339712714420:role/microservices-infra-eks-lb-controller-role";
+              "arn:aws:iam::860973283109:role/microservices-infra-eks-lb-controller-role";
           };
         };
 
         # VPC ID is required for the controller to discover subnets
-        vpcId = "PLACEHOLDER_VPC_ID";
+        vpcId = "vpc-0d5df4c32e5c9437f";
 
         # Enable webhook for TargetGroupBinding CRD
         enableCertManager = false;
