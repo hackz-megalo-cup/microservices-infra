@@ -25,10 +25,6 @@ in
     createNamespace = true;
 
     resources = {
-      secrets.tunnel-credentials = {
-        stringData."credentials.json" = "PLACEHOLDER — run cloudflared-setup to inject real credentials";
-      };
-
       configMaps.cloudflared-config = {
         data."config.yaml" = tunnelConfig;
       };
