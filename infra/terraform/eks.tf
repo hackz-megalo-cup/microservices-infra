@@ -14,14 +14,36 @@ resource "aws_eks_cluster" "main" {
   ]
 }
 
+resource "aws_launch_template" "workers" {
+  name_prefix = "${local.name_prefix}-workers-"
+
+  metadata_options {
+    http_endpoint               = "enabled"
+    http_put_response_hop_limit = 2
+    http_tokens                 = "required"
+  }
+
+  block_device_mappings {
+    device_name = "/dev/xvda"
+    ebs {
+      volume_size = 20
+      volume_type = "gp3"
+    }
+  }
+}
+
 resource "aws_eks_node_group" "workers" {
   cluster_name    = aws_eks_cluster.main.name
   node_group_name = "workers"
   node_role_arn   = aws_iam_role.eks_node_group.arn
   subnet_ids      = local.worker_subnet_ids
   capacity_type   = var.use_spot ? "SPOT" : "ON_DEMAND"
-  disk_size       = 20
   instance_types  = [var.node_instance_type]
+
+  launch_template {
+    id      = aws_launch_template.workers.id
+    version = aws_launch_template.workers.latest_version
+  }
 
   scaling_config {
     desired_size = var.node_desired_size
