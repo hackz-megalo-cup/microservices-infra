@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kaniko
+  namespace: argocd
+spec:
+  destination:
+    namespace: ci
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: ./manifests/kaniko
+    repoURL: https://github.com/hackz-megalo-cup/microservices-infra
+    targetRevision: main
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

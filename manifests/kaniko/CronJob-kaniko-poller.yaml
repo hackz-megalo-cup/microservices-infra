@@ -1,0 +1,46 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: kaniko-poller
+  namespace: ci
+spec:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/component: ci
+            app.kubernetes.io/name: kaniko-poller
+        spec:
+          containers:
+            - command:
+                - bash
+                - /scripts/poll-build.sh
+              image: bitnami/kubectl:latest
+              name: poller
+              resources:
+                limits:
+                  cpu: 200m
+                  memory: 128Mi
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+              volumeMounts:
+                - mountPath: /scripts
+                  name: script
+                - mountPath: /state
+                  name: state
+          restartPolicy: Never
+          serviceAccountName: kaniko-builder
+          volumes:
+            - configMap:
+                defaultMode: 755
+                name: kaniko-poll-script
+              name: script
+            - name: state
+              persistentVolumeClaim:
+                claimName: kaniko-poll-state
+  schedule: '*/3 * * * *'
+  successfulJobsHistoryLimit: 3

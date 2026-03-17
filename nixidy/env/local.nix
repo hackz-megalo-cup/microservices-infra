@@ -17,6 +17,7 @@
     ./local/cloudflared.nix
     ./local/aws-lb-controller.nix
     ./local/agones.nix
+    ./local/kaniko.nix
     ./local/postgresql.nix
     ./local/redpanda.nix
     ./local/reloader.nix
