@@ -2,12 +2,14 @@
 {
   imports = [
     ./local/argocd.nix
-    ./local/garage.nix
+    # garage disabled on EKS (using AWS S3 instead)
+    # ./local/garage.nix
     ./local/kube-prometheus-stack.nix
     ./local/loki.nix
     ./local/tempo.nix
-    ./local/otel-collector.nix
-    ./local/sample-app.nix
+    # otel-collector and sample-app disabled on EKS (imagePullPolicy: Never)
+    # ./local/otel-collector.nix
+    # ./local/sample-app.nix
     ./local/traefik.nix
     ./local/grafana-dashboards.nix
     ./local/image-updater.nix

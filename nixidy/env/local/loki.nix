@@ -17,15 +17,12 @@
           storage = {
             type = "s3";
             bucketNames = {
-              chunks = "loki-chunks";
-              ruler = "loki-chunks";
-              admin = "loki-chunks";
+              chunks = "microservices-infra-eks-obs";
+              ruler = "microservices-infra-eks-obs";
+              admin = "microservices-infra-eks-obs";
             };
             s3 = {
-              endpoint = "http://garage.storage:3900";
-              region = "garage";
-              insecure = true;
-              s3forcepathstyle = true;
+              region = "ap-northeast-1";
             };
           };
 
@@ -49,11 +46,6 @@
             enabled = true;
             size = "5Gi";
           };
-          extraEnvFrom = [
-            {
-              secretRef.name = "garage-s3-credentials";
-            }
-          ];
         };
 
         read.replicas = 0;

@@ -40,6 +40,28 @@ resource "aws_eks_node_group" "workers" {
   ]
 }
 
+resource "kubectl_manifest" "gp2_default_storageclass" {
+  yaml_body = <<-YAML
+    apiVersion: storage.k8s.io/v1
+    kind: StorageClass
+    metadata:
+      name: gp2
+      annotations:
+        storageclass.kubernetes.io/is-default-class: "true"
+    provisioner: kubernetes.io/aws-ebs
+    parameters:
+      type: gp2
+      fsType: ext4
+    reclaimPolicy: Delete
+    volumeBindingMode: WaitForFirstConsumer
+  YAML
+
+  server_side_apply = true
+  force_conflicts   = true
+
+  depends_on = [aws_eks_node_group.workers]
+}
+
 resource "aws_eks_addon" "ebs_csi" {
   cluster_name                = aws_eks_cluster.main.name
   addon_name                  = "aws-ebs-csi-driver"

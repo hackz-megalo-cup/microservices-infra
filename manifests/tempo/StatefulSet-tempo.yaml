@@ -19,7 +19,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: 902ae92dedb7d1250f773a66b11b27d972a74a7c4a4fdfc3fa2ba0ba5f4e87f5
+        checksum/config: 108118cbbf9c919d4082a19667fe1b04074330e4d7e045c70a20aa31316656ba
       labels:
         app.kubernetes.io/instance: tempo
         app.kubernetes.io/name: tempo
@@ -29,9 +29,6 @@ spec:
         - args:
             - -config.file=/conf/tempo.yaml
             - -mem-ballast-size-mbs=1024
-          envFrom:
-            - secretRef:
-                name: garage-s3-credentials
           image: docker.io/grafana/tempo:2.9.0
           imagePullPolicy: IfNotPresent
           livenessProbe:

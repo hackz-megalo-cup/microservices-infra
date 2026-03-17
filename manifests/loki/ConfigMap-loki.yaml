@@ -17,11 +17,10 @@ data:
       replication_factor: 1
       storage:
         s3:
-          bucketnames: loki-chunks
-          endpoint: http://garage.storage:3900
-          insecure: true
-          region: garage
-          s3forcepathstyle: true
+          bucketnames: microservices-infra-eks-obs
+          insecure: false
+          region: ap-northeast-1
+          s3forcepathstyle: false
     frontend:
       scheduler_address: ""
       tail_proxy_url: ""
@@ -46,11 +45,10 @@ data:
     ruler:
       storage:
         s3:
-          bucketnames: loki-chunks
-          endpoint: http://garage.storage:3900
-          insecure: true
-          region: garage
-          s3forcepathstyle: true
+          bucketnames: microservices-infra-eks-obs
+          insecure: false
+          region: ap-northeast-1
+          s3forcepathstyle: false
         type: s3
       wal:
         dir: /var/loki/ruler-wal

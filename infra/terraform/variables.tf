@@ -31,7 +31,7 @@ variable "use_spot" {
 variable "node_instance_type" {
   description = "EC2 instance type for the shared managed node group."
   type        = string
-  default     = "t3.medium"
+  default     = "t3.large"
 }
 
 variable "node_desired_size" {
@@ -50,6 +50,12 @@ variable "node_max_size" {
   description = "Maximum node count for the shared managed node group."
   type        = number
   default     = 4
+}
+
+variable "observability_bucket_name" {
+  description = "S3 bucket name for Loki/Tempo object storage."
+  type        = string
+  default     = "microservices-infra-eks-obs"
 }
 
 variable "cloudflare_tunnel_id" {

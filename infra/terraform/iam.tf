@@ -55,6 +55,35 @@ resource "aws_iam_role_policy_attachment" "eks_node_ecr_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPullOnly"
 }
 
+resource "aws_iam_policy" "observability_s3" {
+  name = "${local.name_prefix}-observability-s3"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:PutObject",
+          "s3:GetObject",
+          "s3:DeleteObject",
+          "s3:ListBucket",
+          "s3:GetBucketLocation",
+        ]
+        Resource = [
+          aws_s3_bucket.observability.arn,
+          "${aws_s3_bucket.observability.arn}/*",
+        ]
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "eks_node_observability_s3" {
+  role       = aws_iam_role.eks_node_group.name
+  policy_arn = aws_iam_policy.observability_s3.arn
+}
+
 data "tls_certificate" "eks_oidc" {
   url = aws_eks_cluster.main.identity[0].oidc[0].issuer
 }
