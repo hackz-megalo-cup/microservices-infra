@@ -12,16 +12,21 @@
         image.tag = "v3.6.9";
 
         service = {
-          type = "NodePort";
-          spec = {
-            externalTrafficPolicy = "Cluster";
+          type = "LoadBalancer";
+          annotations = {
+            "service.beta.kubernetes.io/aws-load-balancer-type" = "external";
+            "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type" = "ip";
+            "service.beta.kubernetes.io/aws-load-balancer-scheme" = "internet-facing";
+            "service.beta.kubernetes.io/aws-load-balancer-ssl-cert" =
+              "arn:aws:acm:ap-northeast-1:860973283109:certificate/20647860-8ce1-4fa2-9578-fe5a197d3108";
+            "service.beta.kubernetes.io/aws-load-balancer-ssl-ports" = "80";
+            "service.beta.kubernetes.io/aws-load-balancer-listen-ports" = ''[{"HTTPS": 443}]'';
+            "service.beta.kubernetes.io/aws-load-balancer-target-group-attributes" = "stickiness.enabled=false";
           };
         };
 
-        ports = {
-          web.nodePort = 30081;
-          websecure.nodePort = 30444;
-        };
+        # Hide websecure from Service; NLB terminates TLS and forwards plain HTTP to web (8000)
+        ports.websecure.expose.default = false;
 
         providers = {
           kubernetesCRD.enabled = true;
@@ -64,7 +69,10 @@
                 "X-User-Agent"
                 "Idempotency-Key"
               ];
-              accessControlAllowOriginList = [ "http://localhost:5173" ];
+              accessControlAllowOriginList = [
+                "http://localhost:5173"
+                "https://app.thirdlf03.com"
+              ];
               accessControlExposeHeaders = [
                 "Grpc-Status"
                 "Grpc-Message"

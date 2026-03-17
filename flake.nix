@@ -95,6 +95,44 @@
               (nix2containerPkgs.nix2container.buildLayer { deps = [ otel-collector ]; })
             ];
           };
+
+          # Custom Helm charts not available in nixhelm (must be unpacked directories)
+          fetchHelmChart =
+            {
+              url,
+              hash,
+              name,
+              version,
+            }:
+            pkgs.runCommand "${name}-${version}"
+              {
+                src = pkgs.fetchurl { inherit url hash; };
+              }
+              ''
+                mkdir -p $out
+                tar xf $src -C $out --strip-components=1
+              '';
+
+          customCharts = {
+            eks = {
+              aws-load-balancer-controller = fetchHelmChart {
+                name = "aws-load-balancer-controller";
+                version = "3.1.0";
+                url = "https://aws.github.io/eks-charts/aws-load-balancer-controller-3.1.0.tgz";
+                hash = "sha256-CM1Az/q/GHrhstzof9Mpu1Js891NUxFzYtHdghHL1YQ=";
+              };
+            };
+            agones = {
+              agones = fetchHelmChart {
+                name = "agones";
+                version = "1.56.0";
+                url = "https://agones.dev/chart/stable/agones-1.56.0.tgz";
+                hash = "sha256-eQ0OUl4mzgH4WdiZpz3N+KpHAU9Fp9mLpDQqtenyqls=";
+              };
+            };
+          };
+
+          allCharts = inputs.nixhelm.chartsDerivations.${system} // customCharts;
         in
         {
           devenv.shells.default = {
@@ -111,12 +149,12 @@
           legacyPackages.nixidyEnvs = {
             local = inputs.nixidy.lib.mkEnv {
               inherit pkgs;
-              charts = inputs.nixhelm.chartsDerivations.${system};
+              charts = allCharts;
               modules = [ ./nixidy/env/local.nix ];
             };
             prod = inputs.nixidy.lib.mkEnv {
               inherit pkgs;
-              charts = inputs.nixhelm.chartsDerivations.${system};
+              charts = allCharts;
               modules = [ ./nixidy/env/prod.nix ];
             };
           };

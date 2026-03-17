@@ -1,0 +1,43 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  annotations:
+    helm.sh/hook: pre-delete
+    helm.sh/hook-delete-policy: before-hook-creation
+  labels:
+    app.kubernetes.io/instance: agones
+    app.kubernetes.io/managed-by: Helm
+    helm.sh/chart: agones-1.56.0
+  name: agones-delete-agones-resources
+  namespace: agones-system
+spec:
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: agones
+        app.kubernetes.io/managed-by: Helm
+        helm.sh/chart: agones-1.56.0
+      name: agones-delete-agones-resources
+    spec:
+      containers:
+        - command:
+            - /bin/sh
+            - /scripts/delete_agones_resources.sh
+            - default
+          image: alpine/kubectl:1.33.4
+          name: pre-delete-delete-agones-resources
+          volumeMounts:
+            - mountPath: /scripts/
+              name: script
+      restartPolicy: Never
+      serviceAccountName: helm-hook-cleanup
+      tolerations:
+        - effect: NoExecute
+          key: agones.dev/agones-system
+          operator: Equal
+          value: "true"
+      volumes:
+        - configMap:
+            name: delete-agones-resources
+          name: script
+  ttlSecondsAfterFinished: 60

@@ -1,0 +1,56 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app: agones
+    chart: agones-1.56.0
+    heritage: Helm
+    release: agones
+  name: agones-allocator
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
+  - apiGroups:
+      - allocation.agones.dev
+    resources:
+      - gameserverallocations
+    verbs:
+      - create
+  - apiGroups:
+      - ""
+    resources:
+      - nodes
+      - secrets
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - agones.dev
+    resources:
+      - gameservers
+      - gameserversets
+    verbs:
+      - get
+      - list
+      - update
+      - watch
+  - apiGroups:
+      - agones.dev
+    resources:
+      - gameservers
+    verbs:
+      - patch
+  - apiGroups:
+      - multicluster.agones.dev
+    resources:
+      - gameserverallocationpolicies
+    verbs:
+      - get
+      - list
+      - watch

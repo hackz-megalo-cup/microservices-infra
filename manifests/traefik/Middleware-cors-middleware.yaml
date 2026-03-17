@@ -20,6 +20,7 @@ spec:
       - OPTIONS
     accessControlAllowOriginList:
       - http://localhost:5173
+      - https://app.thirdlf03.com
     accessControlExposeHeaders:
       - Grpc-Status
       - Grpc-Message
