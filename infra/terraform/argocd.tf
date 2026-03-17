@@ -83,6 +83,7 @@ resource "kubectl_manifest" "argocd_services_appset" {
             directories:
               - path: deploy/manifests/*
               - path: '!deploy/manifests/apps'
+              - path: '!deploy/manifests/traefik'
       template:
         metadata:
           name: '{{path.basename}}'
