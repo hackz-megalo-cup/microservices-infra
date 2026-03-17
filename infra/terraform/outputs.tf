@@ -33,30 +33,7 @@ output "observability_bucket_name" {
   value       = aws_s3_bucket.observability.bucket
 }
 
-output "amp_workspace_id" {
-  description = "Amazon Managed Service for Prometheus workspace ID."
-  value       = aws_prometheus_workspace.amp.id
-}
-
-output "amp_workspace_endpoint" {
-  description = "AMP remote write/query endpoint."
-  value       = aws_prometheus_workspace.amp.prometheus_endpoint
-}
-
-output "grafana_workspace_id" {
-  description = "Amazon Managed Grafana workspace ID."
-  value       = aws_grafana_workspace.main.id
-}
-
-output "grafana_workspace_endpoint" {
-  description = "Amazon Managed Grafana workspace URL."
-  value       = aws_grafana_workspace.main.endpoint
-}
-
 output "cloudwatch_log_group_names" {
-  description = "CloudWatch log groups provisioned for observability migration."
-  value = merge(
-    { amp = aws_cloudwatch_log_group.amp.name },
-    { for key, group in aws_cloudwatch_log_group.application : key => group.name },
-  )
+  description = "CloudWatch log groups for application observability."
+  value       = { for key, group in aws_cloudwatch_log_group.application : key => group.name }
 }

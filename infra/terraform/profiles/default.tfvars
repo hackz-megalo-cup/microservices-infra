@@ -1,4 +1,4 @@
-aws_region         = "us-east-1"
+aws_region         = "ap-northeast-1"
 cluster_name       = "microservices-infra-eks"
 kubernetes_version = "1.32"
 use_nat_gateway    = false
