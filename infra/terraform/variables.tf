@@ -37,7 +37,7 @@ variable "node_instance_type" {
 variable "node_desired_size" {
   description = "Desired node count for the shared managed node group."
   type        = number
-  default     = 2
+  default     = 3
 }
 
 variable "node_min_size" {

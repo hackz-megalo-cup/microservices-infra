@@ -2,6 +2,7 @@
 {
   imports = [
     ./local/argocd.nix
+    ./local/cilium.nix
     # garage disabled on EKS (using AWS S3 instead)
     # ./local/garage.nix
     ./local/kube-prometheus-stack.nix

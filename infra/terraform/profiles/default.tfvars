@@ -1,9 +1,9 @@
-aws_region         = "us-east-1"
+aws_region         = "ap-northeast-1"
 cluster_name       = "microservices-infra-eks"
 kubernetes_version = "1.32"
 use_nat_gateway    = false
 use_spot           = false
 node_instance_type = "t3.medium"
-node_desired_size  = 2
-node_min_size      = 2
+node_desired_size  = 3
+node_min_size      = 3
 node_max_size      = 4
