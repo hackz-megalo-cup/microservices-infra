@@ -30,7 +30,5 @@ locals {
     otel        = "/aws/microservices-infra/otel-collector"
   }
 
-  observability_bucket_name = lower(
-    "${var.cluster_name}-${data.aws_caller_identity.current.account_id}-obs"
-  )
+  observability_bucket_name = var.observability_bucket_name
 }

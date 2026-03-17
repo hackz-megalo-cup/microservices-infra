@@ -33,6 +33,11 @@ resource "helm_release" "argocd" {
     value = "false"
   }
 
+  set {
+    name  = "configs.params.server\\.insecure"
+    value = "true"
+  }
+
   depends_on = [
     aws_eks_node_group.workers,
   ]

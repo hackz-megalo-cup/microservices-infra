@@ -26,7 +26,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: 5417d6470c6402fa56ca0f4add1ebb46e253487a2de173bc80c2831b0bb581d2
+        checksum/config: db46c0848faabd2c1d3725e4f4a5a441a6b5b138035a15cba8377595cf3ccac0
         kubectl.kubernetes.io/default-container: loki
         storage/size: 5Gi
       labels:
@@ -49,9 +49,6 @@ spec:
         - args:
             - -config.file=/etc/loki/config/config.yaml
             - -target=all
-          envFrom:
-            - secretRef:
-                name: garage-s3-credentials
           image: docker.io/grafana/loki:3.6.5
           imagePullPolicy: IfNotPresent
           name: loki

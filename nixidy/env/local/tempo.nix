@@ -9,20 +9,12 @@
 
       values = {
         tempo = {
-          extraEnvFrom = [
-            {
-              secretRef.name = "garage-s3-credentials";
-            }
-          ];
           storage = {
             trace = {
               backend = "s3";
               s3 = {
-                endpoint = "garage.storage:3900";
-                bucket = "tempo-traces";
-                region = "garage";
-                insecure = true;
-                forcepathstyle = true;
+                bucket = "microservices-infra-eks-obs";
+                region = "ap-northeast-1";
               };
               wal.path = "/var/tempo/wal";
             };

@@ -4,6 +4,8 @@
     namespace = "edge";
     createNamespace = true;
 
+    resources.namespaces.microservices = { };
+
     helm.releases.traefik = {
       chart = charts.traefik.traefik;
       values = {
