@@ -46,6 +46,28 @@ resource "aws_eks_access_policy_association" "root_admin" {
 resource "aws_launch_template" "workers" {
   name_prefix = "${local.name_prefix}-workers-"
 
+  user_data = base64encode(<<-EOF
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="//"
+
+--//
+Content-Type: text/cloud-config; charset="us-ascii"
+
+write_files:
+  - path: /etc/sysctl.d/99-quic-udp.conf
+    owner: root:root
+    permissions: "0644"
+    content: |
+      net.core.rmem_max=7500000
+      net.core.wmem_max=7500000
+
+runcmd:
+  - sysctl --system
+
+--//--
+EOF
+  )
+
   metadata_options {
     http_endpoint               = "enabled"
     http_put_response_hop_limit = 2
