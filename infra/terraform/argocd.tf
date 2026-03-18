@@ -89,8 +89,6 @@ resource "kubectl_manifest" "argocd_services_appset" {
       template:
         metadata:
           name: '{{path.basename}}'
-          annotations:
-            argocd.argoproj.io/manifest-generate-paths: '{{path}}'
         spec:
           project: default
           source:
