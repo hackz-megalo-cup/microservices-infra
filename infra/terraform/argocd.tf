@@ -101,6 +101,8 @@ resource "kubectl_manifest" "argocd_services_appset" {
             automated:
               prune: true
               selfHeal: true
+            syncOptions:
+              - CreateNamespace=true
   YAML
 
   depends_on = [helm_release.argocd]

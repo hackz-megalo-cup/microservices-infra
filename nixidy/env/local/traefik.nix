@@ -211,6 +211,122 @@
             };
           }
           {
+            apiVersion = "traefik.io/v1alpha1";
+            kind = "IngressRoute";
+            metadata = {
+              name = "item-route";
+              namespace = "microservices";
+            };
+            spec = {
+              entryPoints = [ "web" ];
+              routes = [
+                {
+                  match = "PathPrefix(`/item.v1.ItemService`)";
+                  kind = "Rule";
+                  priority = 100;
+                  middlewares = [
+                    { name = "cors-middleware"; }
+                    { name = "rate-limit-middleware"; }
+                  ];
+                  services = [
+                    {
+                      name = "item-service";
+                      port = 8080;
+                      scheme = "h2c";
+                    }
+                  ];
+                }
+              ];
+            };
+          }
+          {
+            apiVersion = "traefik.io/v1alpha1";
+            kind = "IngressRoute";
+            metadata = {
+              name = "capture-route";
+              namespace = "microservices";
+            };
+            spec = {
+              entryPoints = [ "web" ];
+              routes = [
+                {
+                  match = "PathPrefix(`/capture.v1.CaptureService`)";
+                  kind = "Rule";
+                  priority = 100;
+                  middlewares = [
+                    { name = "cors-middleware"; }
+                    { name = "rate-limit-middleware"; }
+                  ];
+                  services = [
+                    {
+                      name = "capture-service";
+                      port = 8088;
+                      scheme = "h2c";
+                    }
+                  ];
+                }
+              ];
+            };
+          }
+          {
+            apiVersion = "traefik.io/v1alpha1";
+            kind = "IngressRoute";
+            metadata = {
+              name = "raid-lobby-route";
+              namespace = "microservices";
+            };
+            spec = {
+              entryPoints = [ "web" ];
+              routes = [
+                {
+                  match = "PathPrefix(`/raid_lobby.v1.RaidLobbyService`)";
+                  kind = "Rule";
+                  priority = 100;
+                  middlewares = [
+                    { name = "cors-middleware"; }
+                    { name = "rate-limit-middleware"; }
+                  ];
+                  services = [
+                    {
+                      name = "raid-lobby-service";
+                      port = 8086;
+                      scheme = "h2c";
+                    }
+                  ];
+                }
+              ];
+            };
+          }
+          {
+            apiVersion = "traefik.io/v1alpha1";
+            kind = "IngressRoute";
+            metadata = {
+              name = "masterdata-route";
+              namespace = "microservices";
+            };
+            spec = {
+              entryPoints = [ "web" ];
+              routes = [
+                {
+                  match = "PathPrefix(`/masterdata.v1.MasterdataService`)";
+                  kind = "Rule";
+                  priority = 100;
+                  middlewares = [
+                    { name = "cors-middleware"; }
+                    { name = "rate-limit-middleware"; }
+                  ];
+                  services = [
+                    {
+                      name = "masterdata-service";
+                      port = 8084;
+                      scheme = "h2c";
+                    }
+                  ];
+                }
+              ];
+            };
+          }
+          {
             apiVersion = "rbac.authorization.k8s.io/v1";
             kind = "ClusterRole";
             metadata = {
