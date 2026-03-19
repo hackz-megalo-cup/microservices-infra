@@ -18,7 +18,7 @@
     ./local/aws-lb-controller.nix
     ./local/agones.nix
     ./local/kaniko.nix
-    ./local/postgresql.nix
+    ./local/postgresql-per-service.nix
     ./local/redpanda.nix
     ./local/reloader.nix
   ];

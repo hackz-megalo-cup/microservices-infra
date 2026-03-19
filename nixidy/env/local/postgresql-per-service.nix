@@ -1,8 +1,9 @@
 { lib, charts, ... }:
 let
-  mkPostgres = name: db: port: {
+  mkPostgres = name: db: {
     applications."postgresql-${name}" = {
       namespace = "database";
+      createNamespace = true;
       helm.releases."postgresql-${name}" = {
         chart = charts.bitnami.postgresql;
         values = {
@@ -24,18 +25,25 @@ let
                 memory = "128Mi";
               };
             };
-            service.ports.postgresql = port;
           };
-          metrics.enabled = true;
+          metrics = {
+            enabled = true;
+            serviceMonitor = {
+              enabled = true;
+              namespace = "database";
+            };
+          };
         };
       };
     };
   };
 in
 lib.mkMerge [
-  (mkPostgres "auth" "auth_db" 5432)
-  (mkPostgres "lang" "lang_db" 5432)
-  (mkPostgres "greeter" "greeter_db" 5432)
-  (mkPostgres "caller" "caller_db" 5432)
-  (mkPostgres "gateway" "gateway_db" 5432)
+  (mkPostgres "auth" "auth_db")
+  (mkPostgres "capture" "capture_db")
+  (mkPostgres "item" "item_db")
+  (mkPostgres "lobby" "lobby_db")
+  (mkPostgres "masterdata" "masterdata_db")
+  (mkPostgres "projector" "projector_db")
+  (mkPostgres "raid-lobby" "raid_lobby_db")
 ]

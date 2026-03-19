@@ -327,6 +327,35 @@
             };
           }
           {
+            apiVersion = "traefik.io/v1alpha1";
+            kind = "IngressRoute";
+            metadata = {
+              name = "lobby-route";
+              namespace = "microservices";
+            };
+            spec = {
+              entryPoints = [ "web" ];
+              routes = [
+                {
+                  match = "PathPrefix(`/lobby.v1.LobbyService`)";
+                  kind = "Rule";
+                  priority = 100;
+                  middlewares = [
+                    { name = "cors-middleware"; }
+                    { name = "rate-limit-middleware"; }
+                  ];
+                  services = [
+                    {
+                      name = "lobby-service";
+                      port = 8089;
+                      scheme = "h2c";
+                    }
+                  ];
+                }
+              ];
+            };
+          }
+          {
             apiVersion = "rbac.authorization.k8s.io/v1";
             kind = "ClusterRole";
             metadata = {

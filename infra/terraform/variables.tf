@@ -43,7 +43,7 @@ variable "node_disk_size" {
 variable "node_desired_size" {
   description = "Desired node count for the shared managed node group."
   type        = number
-  default     = 3
+  default     = 5
 }
 
 variable "node_min_size" {
@@ -55,7 +55,7 @@ variable "node_min_size" {
 variable "node_max_size" {
   description = "Maximum node count for the shared managed node group."
   type        = number
-  default     = 4
+  default     = 6
 }
 
 variable "observability_bucket_name" {
