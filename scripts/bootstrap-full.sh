@@ -143,9 +143,11 @@ _step_cloudflared() {
 }
 
 _step_postgresql_apply() {
-  kubectl apply --server-side -f "${REPO_ROOT}/manifests-result/postgresql/Namespace-database.yaml"
-  kubectl apply --server-side -f "${REPO_ROOT}/manifests-result/postgresql/ConfigMap-postgresql-init-scripts.yaml"
-  kubectl apply -f "${REPO_ROOT}/manifests-result/postgresql/" --server-side --force-conflicts || true
+  local services=(auth capture item lobby masterdata projector raid-lobby)
+  kubectl apply --server-side -f "${REPO_ROOT}/manifests-result/postgresql-${services[0]}/Namespace-database.yaml"
+  for svc in "${services[@]}"; do
+    kubectl apply -f "${REPO_ROOT}/manifests-result/postgresql-${svc}/" --server-side --force-conflicts || true
+  done
 }
 
 _step_traefik() {

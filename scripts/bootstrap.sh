@@ -105,12 +105,17 @@ _step_image_load() {
 }
 
 _step_postgresql_apply() {
-  kubectl apply --server-side -f "${REPO_ROOT}/manifests-result/postgresql/Namespace-database.yaml"
-  kubectl apply --server-side -f "${REPO_ROOT}/manifests-result/postgresql/ConfigMap-postgresql-init-scripts.yaml"
+  local services=(auth capture item lobby masterdata projector raid-lobby)
+  kubectl apply --server-side -f "${REPO_ROOT}/manifests-result/postgresql-${services[0]}/Namespace-database.yaml"
   # Skip ServiceMonitor (monitoring CRDs not installed in dev-fast mode)
-  for f in "${REPO_ROOT}/manifests-result/postgresql/"*.yaml; do
-    [[ "$(basename "$f")" == ServiceMonitor-* ]] && continue
-    kubectl apply -f "$f" --server-side --force-conflicts || true
+  for svc in "${services[@]}"; do
+    for f in "${REPO_ROOT}/manifests-result/postgresql-${svc}/"*.yaml; do
+      local base
+      base="$(basename "$f")"
+      [[ "$base" == Namespace-* ]] && continue
+      [[ "$base" == ServiceMonitor-* ]] && continue
+      kubectl apply -f "$f" --server-side --force-conflicts || true
+    done
   done
 }
 

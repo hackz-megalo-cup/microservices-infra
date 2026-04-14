@@ -151,6 +151,10 @@ _step_argocd_apply() {
 }
 
 _step_garage_deploy() {
+  if [[ ! -d "${REPO_ROOT}/manifests-result/garage/" ]]; then
+    echo "Skipping Garage: manifests not generated (disabled in nixidy)"
+    return 0
+  fi
   kubectl create namespace storage --dry-run=client -o yaml | kubectl apply -f -
   kubectl apply -f "${REPO_ROOT}/manifests-result/garage/" --server-side --force-conflicts
   echo "Waiting for Garage to be ready..."
@@ -183,8 +187,14 @@ _step_observability() {
 
   kubectl apply -f "${REPO_ROOT}/manifests-result/kube-prometheus-stack/" --server-side --force-conflicts
   kubectl apply -f "${REPO_ROOT}/manifests-result/loki/" --server-side --force-conflicts
-  kubectl apply -f "${REPO_ROOT}/manifests-result/tempo/" --server-side --force-conflicts
-  kubectl apply -f "${REPO_ROOT}/manifests-result/otel-collector/" --server-side --force-conflicts
+  # tempo is rendered with an EKS S3 backend (microservices-infra-eks-obs) which
+  # cannot be reached from a local Kind cluster, so skip it locally.
+  echo "Skipping tempo: configured for EKS S3, unusable on local Kind"
+  if [[ -d "${REPO_ROOT}/manifests-result/otel-collector/" ]]; then
+    kubectl apply -f "${REPO_ROOT}/manifests-result/otel-collector/" --server-side --force-conflicts
+  else
+    echo "Skipping otel-collector: manifests not generated (disabled in nixidy)"
+  fi
 }
 
 _step_redpanda_deploy() {
@@ -212,9 +222,11 @@ _step_istio_policies() {
 }
 
 _step_postgresql_apply() {
-  kubectl apply --server-side -f "${REPO_ROOT}/manifests-result/postgresql/Namespace-database.yaml"
-  kubectl apply --server-side -f "${REPO_ROOT}/manifests-result/postgresql/ConfigMap-postgresql-init-scripts.yaml"
-  kubectl apply -f "${REPO_ROOT}/manifests-result/postgresql/" --server-side --force-conflicts || true
+  local services=(auth capture item lobby masterdata projector raid-lobby)
+  kubectl apply --server-side -f "${REPO_ROOT}/manifests-result/postgresql-${services[0]}/Namespace-database.yaml"
+  for svc in "${services[@]}"; do
+    kubectl apply -f "${REPO_ROOT}/manifests-result/postgresql-${svc}/" --server-side --force-conflicts || true
+  done
 }
 
 _wait_for_pod() {
